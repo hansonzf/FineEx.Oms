@@ -114,7 +114,7 @@ namespace Oms.Domain.Orders
             OrderState = OrderStatus.StockChecked;
         }
 
-        public virtual void MatchTransportStrategy(bool automaticMatch = false)
+        public virtual void MatchTransportStrategy( bool automaticMatch = false)
         {
             if (!IsNeedToMatchTransport)
                 return;
@@ -127,7 +127,8 @@ namespace Oms.Domain.Orders
                 {
                     AddLocalEvent(new MatchTransportLineForOrdersEvent { 
                         OrderId = Id,
-                        BusinessType = BusinessType
+                        BusinessType = BusinessType,
+                        TenantId = TenantId
                     });
                 }
                 return;

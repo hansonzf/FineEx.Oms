@@ -227,7 +227,7 @@ namespace Oms.HttpApi
             {
                 ResourceId = p.ResourceId,
                 Name = p.ResourceName,
-                Type = p.ResourceType,
+                Type = (TransportResourceTypes)p.ResourceType,
                 Province = p.Province,
                 City = p.City,
                 District = p.Area,

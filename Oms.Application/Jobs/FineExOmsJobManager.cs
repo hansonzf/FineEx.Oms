@@ -23,82 +23,138 @@ namespace Oms.Application.Jobs
             return await scheduler.CheckExists(jobKey);
         }
 
-        private TriggerKey? SelectPrivateTriggerKey(IReadOnlyCollection<ITrigger> triggers)
+        public async Task<IEnumerable<ProcessingJobDto>> GetExecutingJobs()
         {
-            if (triggers is null || !triggers.Any())
-                return null;
-
-            ITrigger privateTrigger = triggers.FirstOrDefault(t => t.Key.Group.StartsWith("private"));
-            if (privateTrigger == null)
-                return null;
-            else
-                return privateTrigger.Key;
+            var executionContext = await scheduler.GetCurrentlyExecutingJobs();
+            return executionContext.Select(x => new ProcessingJobDto { 
+                JobName = x.JobDetail.Key.Name,
+                GroupName = x.JobDetail.Key.Group,
+                TriggerName = x.Trigger.Key.Name,
+                TriggerGroup = x.Trigger.Key.Group
+            });
         }
 
-        public async Task<ProcessingJobDto?> ScheduleAsync(IEnumerable<BusinessOrderDto> orders, ProcessingSteps processing, double delayStart = 0)
+        public async Task<bool> CancelJobAsync(string jobName, string jobGroup)
         {
-            if (!orders.Any()) return null;
+            var jobKey = new JobKey(jobName, jobGroup);
+            return await scheduler.DeleteJob(jobKey);
+        }
 
-            if (orders.Count() == 1 && orders.First().RelationType == RelationTypes.StandAlone)
-                return await ScheduleAsync(orders.First(), processing, delayStart);
+        public async Task RunAsync(string jobName, string jobGroup)
+        {
+            var jobKey = new JobKey(jobName, jobGroup);
+            var triggers = await scheduler.GetTriggersOfJob(jobKey);
 
-            var masterOrder = orders.SingleOrDefault(o => o.RelationType == RelationTypes.CombinedMaster);
-            if (masterOrder == null) return null;
-            var jobKey = JobHelper.GetJobKey(masterOrder.Id, processing);
+            if (!triggers.Any())
+                return;
+
+            var triggerKey = triggers.First().Key;
+            Guid orderId = Guid.Parse(jobKey.Name);
+            ProcessingSteps proc = Enum.Parse<ProcessingSteps>(triggerKey.Group);
+            ITrigger newTrigger = CreateDefaultTrigger(orderId, proc, 0).First();
+            await scheduler.RescheduleJob(triggerKey, newTrigger);
+        }
+
+        public async Task<ProcessingJobDto?> ScheduleAsync(Guid orderId, BusinessTypes businessType, ProcessingSteps processing, Dictionary<string, string> parameters, double delayMilliseconds = 0)
+        {
+            if (orderId == Guid.Empty || businessType == BusinessTypes.None || processing == ProcessingSteps.None) 
+                return null;
+
+            var jobKey = JobHelper.GetJobKey(orderId, businessType);
             if (await scheduler.CheckExists(jobKey))
             {
                 var triggers = await scheduler.GetTriggersOfJob(jobKey);
-                var privateTrigger = SelectPrivateTriggerKey(triggers);
+                var trigger = triggers.FirstOrDefault();
                 return new ProcessingJobDto
                 {
                     JobName = jobKey.Name,
                     GroupName = jobKey.Group,
-                    TriggerName = privateTrigger?.Name
+                    TriggerName = trigger.Key.Name,
+                    TriggerGroup = trigger.Key.Group
                 };
             }
 
-            var jobDetail = CreateJob(jobKey, orders, processing);
-            var triggerList = CreateTriggers(masterOrder.Id, processing, delayStart);
-            var defaultTrigger = SelectPrivateTriggerKey(triggerList);
+            var jobDetail = CreateJob(jobKey, parameters, processing);
+            var triggerList = CreateDefaultTrigger(orderId, processing, delayMilliseconds);
+            var defaultTrigger = triggerList.First();
             await scheduler.ScheduleJob(jobDetail, triggerList, true);
 
             return new ProcessingJobDto
             {
                 JobName = jobKey.Name,
                 GroupName = jobKey.Group,
-                TriggerName = defaultTrigger.Name
+                TriggerName = defaultTrigger.Key.Name,
+                TriggerGroup = defaultTrigger.Key.Group
             };
         }
 
-        public async Task<ProcessingJobDto> ScheduleAsync(BusinessOrderDto order, ProcessingSteps processing, double delayStart = 0)
-        {
-            var jobKey = JobHelper.GetJobKey(order.Id, processing);
-            if (await scheduler.CheckExists(jobKey))
-            { 
-                var triggers = await scheduler.GetTriggersOfJob(jobKey);
-                var privateTrigger = SelectPrivateTriggerKey(triggers);
-                return new ProcessingJobDto
-                { 
-                    JobName = jobKey.Name,
-                    GroupName = jobKey.Group,
-                    TriggerName = privateTrigger?.Name
-                };
-            }
+        //public async Task<ProcessingJobDto?> ScheduleAsync(IEnumerable<BusinessOrderDto> orders, ProcessingSteps processing, double delayMilliseconds = 0)
+        //{
+        //    if (!orders.Any()) return null;
 
-            var jobDetail = CreateJob(jobKey, new BusinessOrderDto[1] { order }, processing);
-            var triggerList = CreateTriggers(order.Id, processing, delayStart);
-            var defaultTrigger = SelectPrivateTriggerKey(triggerList);
-            await scheduler.ScheduleJob(jobDetail, triggerList, true);
+        //    if (orders.Count() == 1 && orders.First().RelationType == RelationTypes.StandAlone)
+        //        return await ScheduleAsync(orders.First(), processing, delayMilliseconds);
 
-            return new ProcessingJobDto 
-            {
-                JobName = jobKey.Name,
-                GroupName = jobKey.Group,
-                TriggerName = defaultTrigger.Name
-            };
-        }
+        //    var masterOrder = orders.SingleOrDefault(o => o.RelationType == RelationTypes.CombinedMaster);
+        //    if (masterOrder == null)
+        //    { 
+        //        // 传进来的参数中全部都是独立的order
+        //    }
+        //    var jobKey = JobHelper.GetJobKey(masterOrder.Id, processing);
+        //    if (await scheduler.CheckExists(jobKey))
+        //    {
+        //        var triggers = await scheduler.GetTriggersOfJob(jobKey);
+        //        var privateTrigger = SelectPrivateTriggerKey(triggers);
+        //        return new ProcessingJobDto
+        //        {
+        //            JobName = jobKey.Name,
+        //            GroupName = jobKey.Group,
+        //            TriggerName = privateTrigger?.Name
+        //        };
+        //    }
 
-        private IJobDetail CreateJob(JobKey jobKey, IEnumerable<BusinessOrderDto> orders, ProcessingSteps processing)
+        //    var jobDetail = CreateJob(jobKey, orders, processing);
+        //    var triggerList = CreateDefaultTrigger(masterOrder.Id, processing, delayMilliseconds);
+        //    var defaultTrigger = SelectPrivateTriggerKey(triggerList);
+        //    await scheduler.ScheduleJob(jobDetail, triggerList, true);
+
+        //    return new ProcessingJobDto
+        //    {
+        //        JobName = jobKey.Name,
+        //        GroupName = jobKey.Group,
+        //        TriggerName = defaultTrigger.Name
+        //    };
+        //}
+
+        //private async Task<ProcessingJobDto> ScheduleAsync(BusinessOrderDto order, ProcessingSteps processing, double delayMilliseconds = 0)
+        //{
+        //    var jobKey = JobHelper.GetJobKey(order.Id, processing);
+        //    if (await scheduler.CheckExists(jobKey))
+        //    { 
+        //        var triggers = await scheduler.GetTriggersOfJob(jobKey);
+        //        var privateTrigger = SelectPrivateTriggerKey(triggers);
+        //        return new ProcessingJobDto
+        //        { 
+        //            JobName = jobKey.Name,
+        //            GroupName = jobKey.Group,
+        //            TriggerName = privateTrigger?.Name
+        //        };
+        //    }
+
+        //    var jobDetail = CreateJob(jobKey, new BusinessOrderDto[1] { order }, processing);
+        //    var triggerList = CreateDefaultTrigger(order.Id, processing, delayMilliseconds);
+        //    var defaultTrigger = SelectPrivateTriggerKey(triggerList);
+        //    await scheduler.ScheduleJob(jobDetail, triggerList, true);
+
+        //    return new ProcessingJobDto 
+        //    {
+        //        JobName = jobKey.Name,
+        //        GroupName = jobKey.Group,
+        //        TriggerName = defaultTrigger.Name
+        //    };
+        //}
+
+        private IJobDetail CreateJob(JobKey jobKey, Dictionary<string, string> jobParameters, ProcessingSteps processing)
         {
             Type jobType = processing switch
             {
@@ -108,7 +164,14 @@ namespace Oms.Application.Jobs
                 _ => throw new ArgumentException()
             };
 
-            JobDataMap jobDataMap = GrabJobDataMap(orders, processing);
+            JobDataMap jobDataMap = new JobDataMap();
+            if (jobParameters.Any())
+            {
+                foreach (var item in jobParameters)
+                {
+                    jobDataMap.Add(item.Key, item.Value);
+                }
+            }
 
             var jobDetail = JobBuilder.Create(jobType)
                 .WithIdentity(jobKey)
@@ -120,9 +183,9 @@ namespace Oms.Application.Jobs
         }
 
 
-        private ITrigger CreateDefaultTrigger(Guid orderId, ProcessingSteps processing, double delay)
+        private ReadOnlyCollection<ITrigger> CreateDefaultTrigger(Guid orderId, ProcessingSteps processing, double delay)
         {
-            var defaultTriggerKey = JobHelper.GetPrivateTriggerKey(orderId, processing);
+            var defaultTriggerKey = JobHelper.GetDefaultTriggerKey(orderId, processing);
 
             ITrigger trigger;
             var triggerBuilder = TriggerBuilder.Create()
@@ -133,68 +196,22 @@ namespace Oms.Application.Jobs
             else
                 trigger = triggerBuilder.StartAt(new DateTimeOffset(DateTime.Now.AddMilliseconds(delay))).Build();
 
-            return trigger;
+            return new ReadOnlyCollection<ITrigger>(new ITrigger[1] { trigger });
         }
 
-        /// <summary>
-        /// create private trigger and public trigger
-        /// </summary>
-        /// <param name="orderId"></param>
-        /// <param name="processing"></param>
-        /// <param name="delay"></param>
-        /// <returns></returns>
-        private ReadOnlyCollection<ITrigger> CreateTriggers(Guid orderId, ProcessingSteps processing, double delay)
-        {
-            List<ITrigger> triggers = new List<ITrigger>();
+        //private JobDataMap GrabJobDataMap(IEnumerable<BusinessOrderDto> orders, ProcessingSteps processing)
+        //{
+        //    JobDataMap map = new JobDataMap();
+        //    var jobDataMapper = jobDataMapperFactory.CreateJobDataMapper(processing);
+        //    var dataMap = jobDataMapper.GrabJobData(orders);
+        //    foreach (var item in dataMap)
+        //    {
+        //        map.Add(item.Key, item.Value);
+        //    }
 
-            if (processing == ProcessingSteps.Dispatching)
-            {
-                ITrigger publicTrigger = TriggerBuilder.Create()
-                    .WithIdentity(JobHelper.GetPublicTriggerKey())
-                    .WithCronSchedule("0 0 18 ? * * *")
-                    .Build();
-                triggers.Add(publicTrigger);
-            }
-            else
-            {
-                triggers.Add(CreateDefaultTrigger(orderId, processing, delay));
-            }
+        //    return map;
+        //}
 
-            return triggers.AsReadOnly();
-        }
 
-        private JobDataMap GrabJobDataMap(IEnumerable<BusinessOrderDto> orders, ProcessingSteps processing)
-        {
-            JobDataMap map = new JobDataMap();
-            var jobDataMapper = jobDataMapperFactory.CreateJobDataMapper(processing);
-            var dataMap = jobDataMapper.GrabJobData(orders);
-            foreach (var item in dataMap)
-            {
-                map.Add(item.Key, item.Value);
-            }
-
-            return map;
-        }
-
-        public async Task RunAsync(string jobName, string jobGroup)
-        {
-            var jobKey = new JobKey(jobName, jobGroup);
-            var triggers = await scheduler.GetTriggersOfJob(jobKey);
-            var triggerKey = SelectPrivateTriggerKey(triggers);
-
-            if (triggerKey is null)
-                return;
-
-            Guid orderId = Guid.Parse(jobKey.Name);
-            ProcessingSteps proc = Enum.Parse<ProcessingSteps>(jobKey.Group);
-            ITrigger newTrigger = CreateDefaultTrigger(orderId, proc, 0);
-            await scheduler.RescheduleJob(triggerKey, newTrigger);
-        }
-
-        public async Task<bool> DeleteJobAsync(string jobName, string jobGroup)
-        {
-            var jobKey = new JobKey(jobName, jobGroup);
-            return await scheduler.DeleteJob(jobKey);
-        }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Oms.Domain.Orders;
 using Oms.Domain.Processings;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -35,13 +33,10 @@ namespace Oms.EntityframeworkCore.Repositories
         public async Task<IEnumerable<Processing>> GetWaitforBuildProcessing(int count = 50)
         {
             var context = await GetDbContextAsync();
-
-            //var orderIds = await context.Set<OutboundOrder>()
-            //    .Where(o => o.OrderState == OrderStatus.CheckingStock)
-            //    .Select(o => o.Id).ToListAsync();
+            int maxExecutedCount = 5;
 
             var processings = await context.Set<Processing>()
-                .Where(p => !p.IsScheduled && p.Processed != (int)p.Steps)
+                .Where(p => !p.IsScheduled && p.Processed != (int)p.Steps && p.ExecutedCount <= maxExecutedCount)
                 .Take(count).ToListAsync();
 
             return processings;

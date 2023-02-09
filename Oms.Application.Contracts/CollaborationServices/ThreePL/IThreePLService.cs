@@ -6,15 +6,14 @@ namespace Oms.Application.Contracts.CollaborationServices.ThreePL
     public interface IThreePLService
     {
         Task<List<CustomerCargoOwner>> GetCustomerCargoOwner(string tenantId);
-
-
+        Task<AddressDescription> GetWarehouseAddress(string tenantId, int consignerId, WarehouseDescription warehouse);
         Task<List<TransportResource>> GetCarrier(string tenantId);
         Task<List<TransportResource>> GetLogisticsCenter(string tenantId);
+        Task<TransportResource> GetLogisticsCenter(string tenantId, string logisticKey);
         Task<List<CustomerDescription>> GetCustomer(string tenantId);
         Task<List<CargoOwnerDescription>> GetCargoOwner(string tenantId, string customerId);
         Task<List<CargoOwnerDescription>> GetCargoOwner(string tenantId);
         Task<List<WarehouseDescription>> GetWarehouse(string tenantId, int consignerId);
-        Task<AddressDescription?> GetWarehouseAddress(string warehouseId);
         Task<List<AddressDescription>> GetAddress(string tenantId);
         Task<List<AddressDescription>> GetAddressByCustomer(string tenantId, string customerId);
         Task<AddressDescription> GetAddressById(string tenantId, string addressId);

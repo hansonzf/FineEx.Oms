@@ -68,6 +68,7 @@ namespace Oms.EntityframeworkCore
                 {
                     c.Ignore(d => d.TransportResources);
                     c.Ignore(d => d.TransportDetails);
+                    c.Property(d => d.Memo).HasColumnName("StrategyMemo").IsRequired(false);
                     c.Property(d => d.TransportLine).HasColumnName("TransportStrategy").IsRequired(false);
                     c.Property(d => d.MatchedTransportLineName).HasColumnName("TransportLineName").IsRequired(false);
                     c.Property(d => d.MatchType).HasColumnName("TransportMatchType");
@@ -110,6 +111,7 @@ namespace Oms.EntityframeworkCore
                 {
                     c.Ignore(d => d.TransportResources);
                     c.Ignore(d => d.TransportDetails);
+                    c.Property(d => d.Memo).HasColumnName("StrategyMemo").IsRequired(false);
                     c.Property(d => d.TransportLine).HasColumnName("TransportStrategy").IsRequired(false);
                     c.Property(d => d.MatchedTransportLineName).HasColumnName("TransportLineName").IsRequired(false);
                     c.Property(d => d.MatchType).HasColumnName("TransportMatchType");
@@ -154,6 +156,7 @@ namespace Oms.EntityframeworkCore
                 {
                     c.Ignore(d => d.TransportResources);
                     c.Ignore(d => d.TransportDetails);
+                    c.Property(d => d.Memo).HasColumnName("StrategyMemo").IsRequired(false);
                     c.Property(d => d.TransportLine).HasColumnName("TransportStrategy").IsRequired(false);
                     c.Property(d => d.MatchedTransportLineName).HasColumnName("TransportLineName").IsRequired(false);
                     c.Property(d => d.MatchType).HasColumnName("TransportMatchType");

@@ -26,7 +26,7 @@ namespace Oms.Application.Orders.CancelOrderHandlers
 
             if (processing.Job is not null)
             {
-                if (await jobManager.DeleteJobAsync(processing.Job.JobName, processing.Job.GroupName))
+                if (await jobManager.CancelJobAsync(processing.Job.JobName, processing.Job.GroupName))
                     processing.CancelJob();
             }
         }

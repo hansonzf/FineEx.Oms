@@ -35,10 +35,10 @@ namespace Oms.Domain.Orders
                 {
                     if (i > 0 && i % 2 == 0)
                     {
-                        var segement = new TransportReceipt 
-                        { 
+                        var segement = new TransportReceipt
+                        {
                             Index = i / 2 + 1,
-                            FromAddressId = TransportResources[i -2].ResourceId,
+                            FromAddressId = TransportResources[i - 2].ResourceId,
                             FromAddressName = TransportResources[i - 2].Name,
                             ToAddressId = TransportResources[i].ResourceId,
                             ToAddressName = TransportResources[i].Name,

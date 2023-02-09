@@ -196,7 +196,7 @@ namespace Oms.Domain.Orders
 
         public override void MatchTransportStrategy(bool automaticMatch = false)
         {
-            base.MatchTransportStrategy();
+            base.MatchTransportStrategy(automaticMatch);
             CalculateCombinationCode();
         }
 

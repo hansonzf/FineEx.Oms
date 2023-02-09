@@ -70,7 +70,7 @@ namespace Oms.Application
             var jobListener = context.ServiceProvider.GetRequiredService<IJobListener>();
             _scheduler.ListenerManager.AddJobListener(jobListener, GroupMatcher<JobKey>.AnyGroup());
             await _scheduler.Start();
-            //await RegisterTaskbuilderWorker(_scheduler);
+            await RegisterTaskbuilderWorker(_scheduler);
         }
 
         public override async Task OnApplicationShutdownAsync(ApplicationShutdownContext context)
@@ -95,16 +95,17 @@ namespace Oms.Application
             {
                 await scheduler.DeleteJob(OmsBuildTaskWorker.Key);
             }
-
+            // Todo: Move this value into configuration file
+            int buildTaskWorkInterval = 30;
             var job = JobBuilder.Create<OmsBuildTaskWorker>()
                 .WithIdentity(OmsBuildTaskWorker.Key)
                 .Build();
 
             var trigger = TriggerBuilder.Create()
-                .WithIdentity("TW(taskbuilder)", JobHelper.GlobalTriggerGroupName)
+                .WithIdentity(JobHelper.TaskBuilderJobTriggerName, JobHelper.GlobalTriggerGroupName)
                 .StartNow()
                 .WithSimpleSchedule(x => x
-                    .WithIntervalInMinutes(1)
+                    .WithIntervalInSeconds(buildTaskWorkInterval)
                     .RepeatForever())
                 .Build();
 

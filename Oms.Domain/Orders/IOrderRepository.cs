@@ -19,6 +19,7 @@ namespace Oms.Domain.Orders
             where TOrder : BusinessOrder;
         Task<bool> UpdateOrderAsync<TOrder>(TOrder order)
             where TOrder : BusinessOrder;
+        Task<string> GetRelatedOrderIds(Guid masterOrderId, BusinessTypes businessType);
 
 
 

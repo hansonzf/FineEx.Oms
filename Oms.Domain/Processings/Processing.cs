@@ -61,7 +61,7 @@ namespace Oms.Domain.Processings
         }
 
 
-        public void BuildingTask(double delay = 0)
+        public void BuildingTask(double delayMilliseconds = 0)
         {
             var proc = GetCurrentStep();
             IsScheduled = false;
@@ -72,22 +72,25 @@ namespace Oms.Domain.Processings
                 BusinessType = BusinessType,
                 OrderId = OrderId,
                 ProcessingId = Id,
-                DelayStart = delay
+                DelayMillisecondsStart = delayMilliseconds
             });
         }
 
-        public void SetBuiltTaskResult(string jobName, string groupName, string triggerName)
+        public void SetBuiltTaskResult(string jobName, string groupName, string triggerName, string triggerGroup)
         {
-            Job = new ProcessingJob(jobName, groupName, triggerName);
+            Job = new ProcessingJob(jobName, groupName, triggerName, triggerGroup);
             IsScheduled = true;
         }
 
-        public void CompleteTask(ProcessingSteps step)
+        public void CompleteTask(ProcessingSteps step, bool taskResponsed = true)
         {
             var currentStep = GetCurrentStep();
             if (step != currentStep)
                 throw new ArgumentException(nameof(step));
 
+            if (step == ProcessingSteps.B2bCheckoutInventory && !taskResponsed)
+                return;
+            
             Processed |= (int)step;
             Job = ProcessingJob.Empty;
             IsScheduled = false;

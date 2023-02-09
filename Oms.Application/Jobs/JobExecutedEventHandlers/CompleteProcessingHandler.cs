@@ -37,7 +37,7 @@ namespace Oms.Application.Jobs.JobExecutedEventHandlers
             {
                 var job = processing.Job;
                 processing.ExecuteFailed(eventData.Proc);
-                processing.SetBuiltTaskResult(job.JobName, job.GroupName, job.TriggerName);
+                processing.SetBuiltTaskResult(job.JobName, job.GroupName, job.TriggerName, job.TriggerGroup);
             }
 
             await uom.Current.SaveChangesAsync();

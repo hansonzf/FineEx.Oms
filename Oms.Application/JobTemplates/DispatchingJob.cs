@@ -34,7 +34,7 @@ namespace Oms.Application.Jobs
                 };
                 var order = await repository.GetOrderByIdAsync(orderId, businessType);
                 if (order == null) return;
-                order.CheckInventory(true);
+                order.Dispatching(true);
                 await uom.Current.SaveChangesAsync();
             }
             catch (Exception ex)

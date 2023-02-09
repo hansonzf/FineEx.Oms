@@ -1,5 +1,4 @@
-﻿using Oms.Domain.Orders;
-using Oms.Domain.Processings;
+﻿using Oms.Domain.Processings;
 using Quartz;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Uow;
@@ -9,15 +8,13 @@ namespace Oms.Application
     public class OmsBuildTaskWorker : IJob, ITransientDependency, IUnitOfWorkEnabled
     {
         readonly IProcessingRepository repository;
-        readonly IOrderRepository orderRepository;
         readonly IUnitOfWorkManager unitOfWorkManager;
 
         public static readonly JobKey Key = new("OmsTaskBuilder", "global");
 
-        public OmsBuildTaskWorker(IProcessingRepository repository, IOrderRepository orderRepository, IUnitOfWorkManager unitOfWorkManager)
+        public OmsBuildTaskWorker(IProcessingRepository repository, IUnitOfWorkManager unitOfWorkManager)
         {
             this.repository = repository;
-            this.orderRepository = orderRepository;
             this.unitOfWorkManager = unitOfWorkManager;
         }
 
@@ -26,15 +23,14 @@ namespace Oms.Application
             try
             {
                 var processings = await repository.GetWaitforBuildProcessing();
-                double delayTime = 1 * 60 * 1000 / (processings.Count() + 1);
+                // Todo: Move this value into configuration file
+                int buildTaskWorkInterval = 30;
+                double delayTime = 1000 * buildTaskWorkInterval / (processings.Count() + 1);
                 if (processings.Any())
                 {
                     foreach (var p in processings)
                     {
                         p.BuildingTask();
-                        //var currentStep = p.GetCurrentStep();
-                        //if (await orderRepository.ScheduledJobByOrder(p.OrderId, p.BusinessType, currentStep))
-                        //    p.BuildingTask();
                     }
 
                     await unitOfWorkManager.Current.SaveChangesAsync();

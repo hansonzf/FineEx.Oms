@@ -158,6 +158,19 @@ namespace Oms.EntityframeworkCore.Repositories
             return success;
         }
 
+        public async Task<string> GetRelatedOrderIds(Guid masterOrderId, BusinessTypes businessType)
+        { 
+            if (businessType != BusinessTypes.OutboundWithTransport)
+                return string.Empty;
+
+            var context = await GetDbContextAsync();
+            var relatedIds = await context.Set<OutboundOrder>().Where(o => o.Id == masterOrderId).Select(o => EF.Property<string>(o, "_relatedOrderIds")).ToListAsync();
+            if (relatedIds.Any())
+                return relatedIds.First();
+            else
+                return string.Empty;
+        }
+
         //public async Task ReceivedTmsAcknowledgement(Guid orderId, BusinessTypes businessType, string transOrderNumber)
         //{
         //    string tableName = businessType switch
@@ -169,26 +182,26 @@ namespace Oms.EntityframeworkCore.Repositories
         //    };
         //    string cmd = $"UPDATE {tableName} SET TmsOrderNumber = {transOrderNumber} WHERE Id = '{orderId}'";
 
-            //    var context = await GetDbContextAsync();
-            //    await context.Database.ExecuteSqlRawAsync(cmd);
-            //}
+        //    var context = await GetDbContextAsync();
+        //    await context.Database.ExecuteSqlRawAsync(cmd);
+        //}
 
-            //public async Task ReceivedWmsAcknowledgement(Guid orderId, BusinessTypes businessType, string wmsOrderNumber)
-            //{
-            //    string tableName = businessType switch
-            //    {
-            //        BusinessTypes.Transport => "TransportOrders",
-            //        BusinessTypes.InboundWithTransport => "InboundOrders",
-            //        BusinessTypes.OutboundWithTransport => "OutboundOrders",
-            //        _ => throw new ArgumentException($"Unsupported business type {Enum.GetName(businessType)}")
-            //    };
-            //    string cmd = $"UPDATE {tableName} SET WmsOrderNumber = {wmsOrderNumber} WHERE Id = '{orderId}'";
+        //public async Task ReceivedWmsAcknowledgement(Guid orderId, BusinessTypes businessType, string wmsOrderNumber)
+        //{
+        //    string tableName = businessType switch
+        //    {
+        //        BusinessTypes.Transport => "TransportOrders",
+        //        BusinessTypes.InboundWithTransport => "InboundOrders",
+        //        BusinessTypes.OutboundWithTransport => "OutboundOrders",
+        //        _ => throw new ArgumentException($"Unsupported business type {Enum.GetName(businessType)}")
+        //    };
+        //    string cmd = $"UPDATE {tableName} SET WmsOrderNumber = {wmsOrderNumber} WHERE Id = '{orderId}'";
 
-            //    var context = await GetDbContextAsync();
-            //    await context.Database.ExecuteSqlRawAsync(cmd);
-            //}
+        //    var context = await GetDbContextAsync();
+        //    await context.Database.ExecuteSqlRawAsync(cmd);
+        //}
 
-            public async Task<bool> ScheduledJobByOrder<TOrder>(Guid orderId, ProcessingSteps step)
+        public async Task<bool> ScheduledJobByOrder<TOrder>(Guid orderId, ProcessingSteps step)
                 where TOrder : BusinessOrder
             {
                 var context = await GetDbContextAsync();

@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Numerics;
+using System.Text.RegularExpressions;
 using Volo.Abp.Domain.Values;
 
 namespace Oms.Domain.Orders
@@ -15,14 +16,24 @@ namespace Oms.Domain.Orders
         public string Address { get; private set; }
 
         private AddressDescription()
-        { }
-
-        public AddressDescription(string province, string city, string district, string detailAddress)
         {
+            AddressId = string.Empty;
+            Contact = string.Empty;
+            Phone = string.Empty;
+            AddressName = string.Empty;
+            Province = string.Empty;
+            City = string.Empty;
+            District = string.Empty;
+            Address = string.Empty;
+        }
+
+        public AddressDescription(string addressId, string addressName, string province, string city, string district)
+        {
+            AddressId = addressId;
+            AddressName = addressName;
             Province = province;
             City = city;
             District = district;
-            Address = detailAddress;
         }
 
         public AddressDescription(string addressId, string contact, string phone, string addressName, string province, string city, string district, string detailAddress)
@@ -35,6 +46,11 @@ namespace Oms.Domain.Orders
             City = city;
             District = district;
             Address = detailAddress;
+        }
+
+        public static AddressDescription Empty()
+        {
+            return new AddressDescription();
         }
 
         public bool IsValid()

@@ -7,15 +7,17 @@ namespace Oms.Domain.Processings
         public string JobName { get; private set; }
         public string GroupName { get; private set; }
         public string TriggerName { get; private set; }
+        public string TriggerGroup { get; private set; }
 
         private ProcessingJob()
         { }
 
-        public ProcessingJob(string jobName, string groupName, string triggerName)
+        public ProcessingJob(string jobName, string groupName, string triggerName, string triggerGroup)
         {
             JobName = jobName;
             GroupName = groupName;
             TriggerName = triggerName;
+            TriggerGroup = triggerGroup;
         }
 
         public static ProcessingJob Empty => new ProcessingJob();
@@ -23,8 +25,9 @@ namespace Oms.Domain.Processings
         protected override IEnumerable<object> GetAtomicValues()
         {
             yield return JobName;
-            yield return TriggerName;
             yield return GroupName;
+            yield return TriggerName;
+            yield return TriggerGroup;
         }
     }
 }
