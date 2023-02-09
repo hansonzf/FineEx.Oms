@@ -1,0 +1,38 @@
+{
+  "modelType": 2,
+  "businessType": 2,
+  "orderList": [
+    {
+      "outBoundID": "512643943409100",
+      "memberID": 249237,
+      "warehouseID": 534201,
+      "payTime": null,
+      "detailList": [
+        {
+          "orderDetailID": "108701",
+          "commodityID": 333974201,
+          "memberID": 249237,
+          "stockType": 1,
+          "amount": 5,
+          "productBatch": ""
+        },
+        {
+          "orderDetailID": "108801",
+          "commodityID": 333974301,
+          "memberID": 249237,
+          "stockType": 1,
+          "amount": 6,
+          "productBatch": ""
+        },
+        {
+          "orderDetailID": "108901",
+          "commodityID": 333974401,
+          "memberID": 249237,
+          "stockType": 1,
+          "amount": 4,
+          "productBatch": ""
+        }
+      ]
+    }
+  ]
+}

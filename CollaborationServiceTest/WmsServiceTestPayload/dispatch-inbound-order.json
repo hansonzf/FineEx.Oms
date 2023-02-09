@@ -1,0 +1,52 @@
+{
+  "inOrders": [
+    {
+      "upSyncID": "512661037719000",
+      "downSyncID": "512661037719000",
+      "inCode": "R30105-512661037719000",
+      "memberID": 22390,
+      "interfaceWarehouseID": 513401,
+      "warehouseID": 23409,
+      "erpSyncID": "RQT1221230000003",
+      "inType": 9,
+      "orderSourceID": 1,
+      "isLuxury": 0,
+      "totalAmout": 0,
+      "memo": "总数【2】",
+      "sendType": "QTRK",
+      "isValidate": 0,
+      "storeCode": null,
+      "storeName": "",
+      "declNo": "",
+      "manifestNo": "",
+      "createBy": 0,
+      "erpSyncCode": "",
+      "dbckWareHouseID": 0,
+      "dbckOrderCode": null,
+      "carryCode": "",
+      "appointmentNo": null,
+      "detailList": [
+        {
+          "detailID": "8201",
+          "commodityID": 334366501,
+          "productBatch": "",
+          "stockType": 1,
+          "amount": 2,
+          "productBatchID": "0",
+          "lineNo": "13395601",
+          "productionDate": "",
+          "expirationDate": "",
+          "currencyValue": "0.000",
+          "dutyMode": "",
+          "weight": "0.000",
+          "uom": ""
+        }
+      ],
+      "logisticsCodeList": [
+
+      ],
+      "appointDetailList": null,
+      "boxCollectionList": null
+    }
+  ]
+}
