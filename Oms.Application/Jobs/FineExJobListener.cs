@@ -38,10 +38,11 @@ namespace Oms.Application.Jobs
 
                 Guid orderId = Guid.Parse(jobKey.Name);
                 BusinessTypes businessType = BusinessTypes.None;
+                string processingType = context.JobDetail.JobDataMap.GetString(JobConstants.JobDataMapProcessTypeKeyName);
                 string? bizTypeStr = context.JobDetail.JobDataMap.GetString(JobConstants.JobDataMapBusinessTypeKeyName);
                 if (!string.IsNullOrEmpty(bizTypeStr))
                     businessType = (BusinessTypes)Enum.Parse(typeof(BusinessTypes), bizTypeStr);
-                ProcessingSteps proc = Enum.Parse<ProcessingSteps>(jobKey.Group);
+                ProcessingSteps proc = Enum.Parse<ProcessingSteps>(processingType);
                 var evt = new JobExecutedEvent
                 {
                     OrderId = orderId,

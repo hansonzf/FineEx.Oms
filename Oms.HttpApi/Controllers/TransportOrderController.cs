@@ -32,6 +32,7 @@ namespace Oms.HttpApi
         public async Task<RspModel> SaveTransportOrder(ReqTransportAddOrder addOrder)
         {
             var dto = ObjectMapper.Map<ReqTransportAddOrder, TransportOrderDto>(addOrder);
+            dto.TenantId = CurrentUser.TenantId;
 
             if (addOrder.OrderId > 0)
                 await orderService.UpdateOrderAsync(dto);

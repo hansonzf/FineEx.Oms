@@ -1,12 +1,7 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Oms.Application.Contracts;
 using Oms.Application.Contracts.CollaborationServices.ThreePL;
 using Oms.Domain.Orders;
-using Oms.Domain.Shared;
-using System.Collections.Generic;
-using System.Net.Mail;
-using Volo.Abp.Users;
 
 namespace ThreePL.Client
 {
@@ -44,9 +39,17 @@ namespace ThreePL.Client
             return result;
         }
 
-        public async Task<AddressDescription> GetWarehouseAddress(string tenantId, int consignerId, WarehouseDescription warehouse)
+        public async Task<AddressDescription?> GetWarehouseAddress(string tenantId, WarehouseDescription warehouse)
         {
-            throw new NotImplementedException();
+            if (!string.IsNullOrEmpty(tenantId))
+            {
+                httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
+            }
+            var res = await httpClient.GetStringAsync($@"/api/warehouse-management/{warehouse.WarehouseId}/detail");
+            var resp = JsonConvert.DeserializeObject<WarehouseDetailDto>(res);
+            return resp is not null ?
+                new AddressDescription(string.Empty, resp.Contact, resp.ContactPhone, resp.Name, resp.Province, resp.City, resp.District, resp.Address) :
+                null;
         }
 
         public async Task<List<AddressDescription>> GetAddress(string tenantId)

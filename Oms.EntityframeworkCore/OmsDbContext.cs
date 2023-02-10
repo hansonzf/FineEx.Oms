@@ -30,7 +30,15 @@ namespace Oms.EntityframeworkCore
             modelBuilder.Entity<Processing>(conf => {
                 conf.HasKey(x => x.Id);
                 conf.Ignore(x => x.IsCompleteAllSteps);
-                conf.OwnsOne(x => x.Job);
+                conf.OwnsOne(x => x.Job, d => {
+                    d.Property(c => c.JobName).IsRequired().HasColumnName("JobName");
+                    d.Property(c => c.GroupName).IsRequired().HasColumnName("GroupName");
+                    d.Property(c => c.TriggerName).IsRequired().HasColumnName("TriggerName");
+                    d.Property(c => c.TriggerGroup).IsRequired().HasColumnName("TriggerGroup");
+                });
+
+                conf.HasIndex(x => new { x.Processed, x.IsScheduled });
+                conf.HasIndex(x => x.OrderId);
             });
 
             #region Configure transport order aggregate
@@ -39,40 +47,40 @@ namespace Oms.EntityframeworkCore
                 conf.Property("_orderDetails").HasColumnName("OrderDetails");
                 conf.Property(x => x.Visible).HasDefaultValue(true);
                 conf.Property(x => x.RelationType).HasDefaultValue(RelationTypes.StandAlone);
-                conf.OwnsOne(x => x.Customer, c => {
-                    c.Ignore(d => d.CustomerId);
-                    c.Property(d => d.CustomerId).HasColumnName("CustomerId");
-                    c.Property(d => d.CustomerName).HasColumnName("CustomerName").IsRequired(false);
+                conf.OwnsOne(x => x.Customer, d => {
+                    d.Ignore(c => c.CustomerId);
+                    d.Property(c => c.CustomerId).HasColumnName("CustomerId");
+                    d.Property(c => c.CustomerName).HasColumnName("CustomerName").IsRequired(false);
                 });
-                conf.OwnsOne(x => x.SenderInfo, c => {
-                    c.Property(d => d.AddressId).HasColumnName("SenderAddressId").IsRequired();
-                    c.Property(d => d.Contact).HasColumnName("SenderContact").IsRequired();
-                    c.Property(d => d.Phone).HasColumnName("SenderPhone").IsRequired();
-                    c.Property(d => d.AddressName).HasColumnName("SenderAddressName").IsRequired();
-                    c.Property(d => d.Province).HasColumnName("SenderProvince").IsRequired();
-                    c.Property(d => d.City).HasColumnName("SenderCity").IsRequired();
-                    c.Property(d => d.District).HasColumnName("SenderDistrict").IsRequired();
-                    c.Property(d => d.Address).HasColumnName("SenderDetailAddress").IsRequired(false);
+                conf.OwnsOne(x => x.SenderInfo, d => {
+                    d.Property(c => c.AddressId).HasColumnName("SenderAddressId").IsRequired();
+                    d.Property(c => c.Contact).HasColumnName("SenderContact").IsRequired();
+                    d.Property(c => c.Phone).HasColumnName("SenderPhone").IsRequired();
+                    d.Property(c => c.AddressName).HasColumnName("SenderAddressName").IsRequired();
+                    d.Property(c => c.Province).HasColumnName("SenderProvince").IsRequired();
+                    d.Property(c => c.City).HasColumnName("SenderCity").IsRequired();
+                    d.Property(c => c.District).HasColumnName("SenderDistrict").IsRequired();
+                    d.Property(c => c.Address).HasColumnName("SenderDetailAddress").IsRequired(false);
                 });
-                conf.OwnsOne(x => x.ReceiverInfo, c => {
-                    c.Property(d => d.AddressId).HasColumnName("ReceiverAddressId").IsRequired();
-                    c.Property(d => d.Contact).HasColumnName("ReceiverContact").IsRequired();
-                    c.Property(d => d.Phone).HasColumnName("ReceiverPhone").IsRequired();
-                    c.Property(d => d.AddressName).HasColumnName("ReceiverAddressName").IsRequired();
-                    c.Property(d => d.Province).HasColumnName("ReceiverProvince").IsRequired();
-                    c.Property(d => d.City).HasColumnName("ReceiverCity").IsRequired();
-                    c.Property(d => d.District).HasColumnName("ReceiverDistrict").IsRequired();
-                    c.Property(d => d.Address).HasColumnName("ReceiverDetailAddress").IsRequired(false);
+                conf.OwnsOne(x => x.ReceiverInfo, d => {
+                    d.Property(c => c.AddressId).HasColumnName("ReceiverAddressId").IsRequired();
+                    d.Property(c => c.Contact).HasColumnName("ReceiverContact").IsRequired();
+                    d.Property(c => c.Phone).HasColumnName("ReceiverPhone").IsRequired();
+                    d.Property(c => c.AddressName).HasColumnName("ReceiverAddressName").IsRequired();
+                    d.Property(c => c.Province).HasColumnName("ReceiverProvince").IsRequired();
+                    d.Property(c => c.City).HasColumnName("ReceiverCity").IsRequired();
+                    d.Property(c => c.District).HasColumnName("ReceiverDistrict").IsRequired();
+                    d.Property(c => c.Address).HasColumnName("ReceiverDetailAddress").IsRequired(false);
                 });
-                conf.OwnsOne(x => x.MatchedTransportStrategy, c =>
+                conf.OwnsOne(x => x.MatchedTransportStrategy, d =>
                 {
-                    c.Ignore(d => d.TransportResources);
-                    c.Ignore(d => d.TransportDetails);
-                    c.Property(d => d.Memo).HasColumnName("StrategyMemo").IsRequired(false);
-                    c.Property(d => d.TransportLine).HasColumnName("TransportStrategy").IsRequired(false);
-                    c.Property(d => d.MatchedTransportLineName).HasColumnName("TransportLineName").IsRequired(false);
-                    c.Property(d => d.MatchType).HasColumnName("TransportMatchType");
-                    c.Property(d => d.TransportReceipts).HasColumnName("TransportDocuments").IsRequired(false);
+                    d.Ignore(c => c.TransportResources);
+                    d.Ignore(c => c.TransportDetails);
+                    d.Property(c => c.Memo).HasColumnName("StrategyMemo").IsRequired(false);
+                    d.Property(c => c.TransportLine).HasColumnName("TransportStrategy").IsRequired(false);
+                    d.Property(c => c.MatchedTransportLineName).HasColumnName("TransportLineName").IsRequired(false);
+                    d.Property(c => c.MatchType).HasColumnName("TransportMatchType");
+                    d.Property(c => c.TransportReceipts).HasColumnName("TransportDocuments").IsRequired(false);
                 });
                 conf.Ignore(x => x.Details);
             });

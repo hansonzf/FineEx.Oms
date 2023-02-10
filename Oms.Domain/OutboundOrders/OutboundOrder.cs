@@ -238,10 +238,5 @@ namespace Oms.Domain.Orders
             base.SuccessUndoDispatch();
             CalculateCombinationCode();
         }
-
-        protected override void WithdrawDispatchCore()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

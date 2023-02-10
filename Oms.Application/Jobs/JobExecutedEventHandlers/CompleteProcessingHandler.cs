@@ -31,12 +31,12 @@ namespace Oms.Application.Jobs.JobExecutedEventHandlers
             }
 
             if (eventData.IsSuccess)
-                processing.CompleteTask(eventData.Proc);
+                processing.TaskExecuteSuccess(eventData.Proc);
 
             if (!eventData.IsSuccess && processing.ExecutedCount <= 5)
             {
                 var job = processing.Job;
-                processing.ExecuteFailed(eventData.Proc);
+                processing.TaskExecuteFailed(eventData.Proc);
                 processing.SetBuiltTaskResult(job.JobName, job.GroupName, job.TriggerName, job.TriggerGroup);
             }
 

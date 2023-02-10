@@ -32,18 +32,21 @@ namespace Oms.Application.Processings.BuildTaskEventHandlers
             if (eventData == null)
                 return;
 
+            long? orderId = await orderRepository.GetOrderIdByOrderUuidAsync(eventData.OrderUuid, eventData.BusinessType);
             var parameters = new Dictionary<string, string>
             {
                 { JobConstants.JobDataMapBusinessTypeKeyName, ((int)eventData.BusinessType).ToString() },
-                { JobConstants.JobDataMapTenantIdKeyName, eventData.TenantId }
+                { JobConstants.JobDataMapTenantIdKeyName, eventData.TenantId },
+                { JobConstants.JobDataMapOrderIdKeyName, orderId.HasValue ? orderId.Value.ToString() : "0" },
+                { JobConstants.JobDataMapProcessTypeKeyName, Enum.GetName(eventData.CurrentStep) }
             };
             if (eventData.BusinessType == BusinessTypes.OutboundWithTransport)
             {
-                var relatedOrderIds = await orderRepository.GetRelatedOrderIds(eventData.OrderId, eventData.BusinessType);
+                var relatedOrderIds = await orderRepository.GetRelatedOrderIds(eventData.OrderUuid, eventData.BusinessType);
                 parameters.Add(JobConstants.JobDataMapRelatedOrderIdsOrderIdKeyName, relatedOrderIds);
             }
 
-            var jobInfo = await jobManager.ScheduleAsync(eventData.OrderId, eventData.BusinessType, eventData.CurrentStep, parameters, eventData.DelayMillisecondsStart);
+            var jobInfo = await jobManager.ScheduleAsync(eventData.OrderUuid, eventData.BusinessType, eventData.CurrentStep, parameters, eventData.DelayMillisecondsStart);
             var processing = await processingRepository.GetAsync(eventData.ProcessingId);
             processing.SetBuiltTaskResult(jobInfo.JobName, jobInfo.GroupName, jobInfo.TriggerName, jobInfo.TriggerGroup);
             await uow.Current.SaveChangesAsync();

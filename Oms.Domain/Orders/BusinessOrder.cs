@@ -190,13 +190,12 @@ namespace Oms.Domain.Orders
             OrderState = OrderStatus.Dispatched;
         }
 
-        protected abstract void WithdrawDispatchCore();
-
         public virtual void WithdrawDispatch()
         {
             if (OrderState != OrderStatus.Dispatched)
                 throw new BusinessException(message: $"Order state error");
-            WithdrawDispatchCore();
+
+            OrderState = OrderStatus.Submited;
         }
 
         public virtual void SuccessUndoDispatch()

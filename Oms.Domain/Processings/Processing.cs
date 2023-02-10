@@ -70,7 +70,7 @@ namespace Oms.Domain.Processings
             {
                 CurrentStep = proc,
                 BusinessType = BusinessType,
-                OrderId = OrderId,
+                OrderUuid = OrderId,
                 ProcessingId = Id,
                 DelayMillisecondsStart = delayMilliseconds
             });
@@ -82,22 +82,21 @@ namespace Oms.Domain.Processings
             IsScheduled = true;
         }
 
-        public void CompleteTask(ProcessingSteps step, bool taskResponsed = true)
+        public void TaskExecuteSuccess(ProcessingSteps step, bool waitforResponse = false)
         {
             var currentStep = GetCurrentStep();
             if (step != currentStep)
                 throw new ArgumentException(nameof(step));
-
-            if (step == ProcessingSteps.B2bCheckoutInventory && !taskResponsed)
-                return;
             
-            Processed |= (int)step;
             Job = ProcessingJob.Empty;
-            IsScheduled = false;
+            // 当一个job完成时，如果不需要等待异步的api回传结果，步进器才可以进下一步
+            if (!waitforResponse)
+                Processed |= (int)step;
+            IsScheduled = !waitforResponse;
             ExecutedCount = 0;
         }
 
-        public void ExecuteFailed(ProcessingSteps step)
+        public void TaskExecuteFailed(ProcessingSteps step)
         {
             var currentStep = GetCurrentStep();
             if (step != currentStep)
@@ -106,6 +105,17 @@ namespace Oms.Domain.Processings
             Job = ProcessingJob.Empty;
             IsScheduled = false;
             ExecutedCount++;
+        }
+
+        public void Complete(ProcessingSteps step)
+        {
+            var currentStep = GetCurrentStep();
+            if (step != currentStep)
+                throw new ArgumentException(nameof(step));
+
+            Processed |= (int)step;
+            IsScheduled = false;
+            ExecutedCount = 0;
         }
 
         public void CancelJob()

@@ -169,10 +169,5 @@ namespace Oms.Domain.Orders
                 throw new BusinessException(message: "The trsnsport strategy end location doesn't match order");
             base.SetMatchedResult(strategy);
         }
-
-        protected override void WithdrawDispatchCore()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

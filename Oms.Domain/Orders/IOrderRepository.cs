@@ -15,12 +15,13 @@ namespace Oms.Domain.Orders
         Task<TOrder?> GetAsync<TOrder>(long orderId)
             where TOrder : BusinessOrder;
         Task<Guid?> GetOrderUuidByOrderIdAsync(long orderId, BusinessTypes businessType);
+        Task<long?> GetOrderIdByOrderUuidAsync(Guid orderUuid, BusinessTypes businessType);
         Task<TOrder> InsertOrderAsync<TOrder>(TOrder order)
             where TOrder : BusinessOrder;
         Task<bool> UpdateOrderAsync<TOrder>(TOrder order)
             where TOrder : BusinessOrder;
         Task<string> GetRelatedOrderIds(Guid masterOrderId, BusinessTypes businessType);
-
+        Task<string> GetOrderTenantIdAsync(Guid orderId, BusinessTypes businessType);
 
 
 

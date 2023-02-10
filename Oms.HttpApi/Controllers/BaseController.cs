@@ -20,7 +20,7 @@ namespace Oms.HttpApi.Controllers
                 var companyId = "";
                 var userName = "";
                 var phone = "";
-                var tenantId = "";
+                var tenantId = "1";
                 var tokenValues = HttpContext.Request.Headers["Authorization"];
                 if (tokenValues.Any())
                 {

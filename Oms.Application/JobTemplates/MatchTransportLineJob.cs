@@ -16,15 +16,16 @@ namespace Oms.Application.Jobs
             this.uom = uom;
         }
 
-        public async Task Execute(IJobExecutionContext context)
+        public virtual async Task Execute(IJobExecutionContext context)
         {
             try
             {
+                using var uow = uom.Begin();
                 var dataMap = context.MergedJobDataMap;
-                string? orderUuid = dataMap.GetString(JobConstants.JobDataMapOrderIdKeyName);
+                string? id = dataMap.GetString(JobConstants.JobDataMapOrderIdKeyName);
                 string? biz = dataMap.GetString(JobConstants.JobDataMapBusinessTypeKeyName);
-                if (orderUuid == null || biz == null) return;
-                long orderId = long.Parse(orderUuid);
+                if (id == null || biz == null) return;
+                long orderId = long.Parse(id);
                 BusinessTypes businessType = biz switch
                 {
                     "1" => BusinessTypes.OutboundWithTransport,
@@ -35,7 +36,7 @@ namespace Oms.Application.Jobs
                 var order = await repository.GetOrderByIdAsync(orderId, businessType);
                 if (order == null) return;
                 order.MatchTransportStrategy(true);
-                await uom.Current.SaveChangesAsync();
+                await uow.CompleteAsync();
             }
             catch (Exception ex)
             {

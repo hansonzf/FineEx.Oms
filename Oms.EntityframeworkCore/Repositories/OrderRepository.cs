@@ -89,6 +89,18 @@ namespace Oms.EntityframeworkCore.Repositories
             };
         }
 
+        public async Task<long?> GetOrderIdByOrderUuidAsync(Guid orderUuid, BusinessTypes businessType)
+        {
+            var context = await GetDbContextAsync();
+            return businessType switch
+            {
+                BusinessTypes.InboundWithTransport => await context.Set<InboundOrder>().Where(o => o.Id == orderUuid).Select(o => o.InboundId).FirstOrDefaultAsync(),
+                BusinessTypes.OutboundWithTransport => await context.Set<OutboundOrder>().Where(o => o.Id == orderUuid).Select(o => o.OutboundId).FirstOrDefaultAsync(),
+                BusinessTypes.Transport => await context.Set<TransportOrder>().Where(o => o.Id == orderUuid).Select(o => o.TransportId).FirstOrDefaultAsync(),
+                _ => throw new ArgumentException($"The {Enum.GetName(businessType)} is not supported"),
+            };
+        }
+
         private async Task<Guid?> GetOrderUuidByOrderNumberAsync<TOrder>(string orderNumber)
             where TOrder : BusinessOrder
         {
@@ -169,6 +181,11 @@ namespace Oms.EntityframeworkCore.Repositories
                 return relatedIds.First();
             else
                 return string.Empty;
+        }
+
+        public async Task<string> GetOrderTenantIdAsync(Guid orderId, BusinessTypes businessType)
+        {
+            throw new NotImplementedException();
         }
 
         //public async Task ReceivedTmsAcknowledgement(Guid orderId, BusinessTypes businessType, string transOrderNumber)

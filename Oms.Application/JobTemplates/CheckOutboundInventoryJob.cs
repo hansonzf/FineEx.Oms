@@ -20,6 +20,7 @@ namespace Oms.Application.Jobs
         {
             try
             {
+                using var uow = uom.Begin();
                 var dataMap = context.MergedJobDataMap;
                 string? orderUuid = dataMap.GetString(JobConstants.JobDataMapOrderIdKeyName);
                 string? biz = dataMap.GetString(JobConstants.JobDataMapBusinessTypeKeyName);
@@ -35,7 +36,7 @@ namespace Oms.Application.Jobs
                 var order = await repository.GetOrderByIdAsync(orderId, businessType);
                 if (order == null) return;
                 order.CheckInventory(true);
-                await uom.Current.SaveChangesAsync();
+                await uow.CompleteAsync();
             }
             catch (Exception ex)
             {

@@ -143,10 +143,5 @@ namespace Oms.Domain.Orders
             });
             base.Cancel();
         }
-
-        protected override void WithdrawDispatchCore()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oms.EntityframeworkCore;
 
@@ -11,9 +12,11 @@ using Oms.EntityframeworkCore;
 namespace Oms.EntityframeworkCore.Migrations
 {
     [DbContext(typeof(OmsDbContext))]
-    partial class OmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230209104726_oms3")]
+    partial class oms3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

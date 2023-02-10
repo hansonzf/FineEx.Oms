@@ -54,9 +54,9 @@ namespace Oms.Application
                 });
             });
             context.Services.AddSingleton<IJobListener, FineExJobListener>();
-            context.Services.AddTransient<CheckInventoryOutboundJobDataMapper>();
-            context.Services.AddTransient<MatchTransportLineJobDataMapper>();
-            context.Services.AddTransient<DispatchJobDataMapper>();
+            //context.Services.AddTransient<MatchTransportLineJob>();
+            //context.Services.AddTransient<MatchTransportLineJobDataMapper>();
+            //context.Services.AddTransient<DispatchJobDataMapper>();
 
             context.Services.AddSingleton(serviceProvider =>
             {

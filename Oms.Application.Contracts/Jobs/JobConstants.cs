@@ -4,10 +4,10 @@
     {
         public static readonly string JobDataMapRelatedOrderIdsOrderIdKeyName = "relatedOrderIds";
         public static readonly string JobDataMapTenantIdKeyName = "tenantId";
-
-
-
         public static readonly string JobDataMapOrderIdKeyName = "orderId";
+        public static readonly string JobDataMapProcessTypeKeyName = "processType";
+
+
         public static readonly string JobDataMapBusinessTypeKeyName = "businessType";
         public static readonly string PrivateTriggerGroup = "default-triggers";
         public static readonly string PublicTriggerGroup = "public-triggers";

@@ -7,7 +7,7 @@ using Volo.Abp.Uow;
 
 namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
 {
-    internal class AutomaticMatchTransportHandler
+    public class AutomaticMatchTransportHandler
         : ILocalEventHandler<MatchTransportLineForOrdersEvent>, ITransientDependency
     {
         readonly IThreePLService dataService;
@@ -23,6 +23,7 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
 
         public async Task HandleEventAsync(MatchTransportLineForOrdersEvent eventData)
         {
+            return;
             if (eventData.OrderId.HasValue)
             {
                 await AutomaticMatchTransportPlan(eventData.TenantId, eventData.OrderId.Value, eventData.BusinessType);
@@ -38,7 +39,6 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
                     await AutomaticMatchTransportPlan(eventData.TenantId, orderid.Value, eventData.BusinessType);
                 }
             }
-            throw new NotImplementedException();
         }
 
         async Task AutomaticMatchTransportPlan(string tenantId, Guid orderId, BusinessTypes businessType)
@@ -71,7 +71,7 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
 
             var orderInfo = new OrderDeliveryInfo
             {
-                BusinessType = 1,
+                BusinessType = 3,
                 CustomerId = order.Customer.CustomerId,
                 OrderId = order.TransportId,
                 FromAddressId = order.SenderInfo.AddressId,
@@ -108,7 +108,7 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
             var warehouseAddr = await dataService.GetWarehouseAddress(tenantId, order.CargoOwner.CargoOwnerId, order.Warehouse);
             var orderInfo = new OrderDeliveryInfo
             {
-                BusinessType = 1,
+                BusinessType = 2,
                 CustomerId = order.Customer.CustomerId,
                 OrderId = order.InboundId,
                 FromAddressId = order.DeliveryInfo.AddressId,
