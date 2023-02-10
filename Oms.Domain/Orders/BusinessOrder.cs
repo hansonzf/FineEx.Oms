@@ -88,11 +88,10 @@ namespace Oms.Domain.Orders
             if (IsNeedToCheckInventory)
             {
                 // 需要检查库存的业务类型
-                if (OrderState != OrderStatus.Submited)
+                if (OrderState != OrderStatus.Created)
                     throw new BusinessException(
                         message: $"Current order is {Enum.GetName(OrderState)} state, only [Created] state order could execute check inventory operation");
 
-                OrderState = OrderStatus.CheckingStock;
                 if (automaticCheck)
                 {
                     AddLocalEvent(new CheckInventoryforOrderEvent { 
@@ -103,16 +102,18 @@ namespace Oms.Domain.Orders
             }
         }
 
+
         public virtual void SetCheckedInventoryResult(IEnumerable<HeldStockResult> stockResult)
         {
             if (!IsNeedToCheckInventory)
                 return;
 
-            if (OrderState != OrderStatus.CheckingStock)
+            if (OrderState != OrderStatus.Created)
                 throw new BusinessException(message: "Order state error");
 
             OrderState = OrderStatus.StockChecked;
         }
+
 
         public virtual void MatchTransportStrategy( bool automaticMatch = false)
         {
@@ -122,7 +123,6 @@ namespace Oms.Domain.Orders
             if ((OrderState == OrderStatus.StockChecked && IsNeedToCheckInventory)
                 || (OrderState == OrderStatus.Created && !IsNeedToCheckInventory))
             {
-                OrderState = OrderStatus.MatchingTransportLine;
                 if (automaticMatch)
                 {
                     AddLocalEvent(new MatchTransportLineForOrdersEvent { 
@@ -142,7 +142,8 @@ namespace Oms.Domain.Orders
             if (!IsNeedToMatchTransport)
                 return;
 
-            if (OrderState == OrderStatus.MatchingTransportLine)
+            if ((OrderState == OrderStatus.StockChecked && IsNeedToCheckInventory)
+                || (OrderState == OrderStatus.Created && !IsNeedToCheckInventory))
             {
                 OrderState = OrderStatus.TransportLineMatched;
                 MatchedTransportStrategy = strategy;

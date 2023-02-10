@@ -1,10 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Oms.Domain.Orders;
-using Oms.Domain.Processings;
-using System;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -183,84 +178,17 @@ namespace Oms.EntityframeworkCore.Repositories
                 return string.Empty;
         }
 
-        public async Task<string> GetOrderTenantIdAsync(Guid orderId, BusinessTypes businessType)
+        public async Task<string?> GetOrderTenantIdAsync(Guid orderId, BusinessTypes businessType)
         {
-            throw new NotImplementedException();
+            var context = await GetDbContextAsync();
+            if (businessType == BusinessTypes.InboundWithTransport)
+                return await context.Set<InboundOrder>().Where(o => o.Id == orderId).Select(o => o.TenantId).FirstOrDefaultAsync();
+            else if (businessType == BusinessTypes.OutboundWithTransport)
+                return await context.Set<OutboundOrder>().Where(o => o.Id == orderId).Select(o => o.TenantId).FirstOrDefaultAsync();
+            else if (businessType == BusinessTypes.Transport)
+                return await context.Set<TransportOrder>().Where(o => o.Id == orderId).Select(o => o.TenantId).FirstOrDefaultAsync();
+            else
+                return string.Empty;
         }
-
-        //public async Task ReceivedTmsAcknowledgement(Guid orderId, BusinessTypes businessType, string transOrderNumber)
-        //{
-        //    string tableName = businessType switch
-        //    {
-        //        BusinessTypes.Transport => "TransportOrders",
-        //        BusinessTypes.InboundWithTransport => "InboundOrders",
-        //        BusinessTypes.OutboundWithTransport => "OutboundOrders",
-        //        _ => throw new ArgumentException($"Unsupported business type {Enum.GetName(businessType)}")
-        //    };
-        //    string cmd = $"UPDATE {tableName} SET TmsOrderNumber = {transOrderNumber} WHERE Id = '{orderId}'";
-
-        //    var context = await GetDbContextAsync();
-        //    await context.Database.ExecuteSqlRawAsync(cmd);
-        //}
-
-        //public async Task ReceivedWmsAcknowledgement(Guid orderId, BusinessTypes businessType, string wmsOrderNumber)
-        //{
-        //    string tableName = businessType switch
-        //    {
-        //        BusinessTypes.Transport => "TransportOrders",
-        //        BusinessTypes.InboundWithTransport => "InboundOrders",
-        //        BusinessTypes.OutboundWithTransport => "OutboundOrders",
-        //        _ => throw new ArgumentException($"Unsupported business type {Enum.GetName(businessType)}")
-        //    };
-        //    string cmd = $"UPDATE {tableName} SET WmsOrderNumber = {wmsOrderNumber} WHERE Id = '{orderId}'";
-
-        //    var context = await GetDbContextAsync();
-        //    await context.Database.ExecuteSqlRawAsync(cmd);
-        //}
-
-        public async Task<bool> ScheduledJobByOrder<TOrder>(Guid orderId, ProcessingSteps step)
-                where TOrder : BusinessOrder
-            {
-                var context = await GetDbContextAsync();
-                OrderStatus newState = step switch 
-                { 
-                    ProcessingSteps.B2bCheckoutInventory => OrderStatus.CheckingStock,
-                    ProcessingSteps.MatchTransport => OrderStatus.MatchingTransportLine,
-                    ProcessingSteps.Dispatching => OrderStatus.WaitforDispatch,
-                    _ => throw new ArgumentException("Argumnet 'step' has wrong value")
-                };
-                string idString = orderId.ToString().ToLower();
-
-                int affectRows = await context.Set<TOrder>()
-                    .Where(o => o.Id == orderId || EF.Property<string>(o, "_relatedOrderIds") == idString)
-                    .ExecuteUpdateAsync(p => p.SetProperty(o => o.OrderState, newState));
-
-                return affectRows > 0;
-            }
-
-            //public async Task<bool> ScheduledJobByOrder(Guid orderId, BusinessTypes businessType, ProcessingSteps step)
-            //{
-            //    var context = await GetDbContextAsync();
-            //    string tblName = businessType switch
-            //    {
-            //        BusinessTypes.OutboundWithTransport => "OutboundOrders",
-            //        BusinessTypes.InboundWithTransport => "InboundOrders",
-            //        BusinessTypes.Transport => "TransportOrders",
-            //        _ => throw new ArgumentException("Argumnet 'businessType' has wrong value")
-            //    };
-            //    OrderStatus newState = step switch
-            //    {
-            //        ProcessingSteps.B2bCheckoutInventory => OrderStatus.CheckingStock,
-            //        ProcessingSteps.MatchTransport => OrderStatus.MatchingTransportLine,
-            //        ProcessingSteps.Dispatching => OrderStatus.WaitforDispatch,
-            //        _ => throw new ArgumentException("Argumnet 'step' has wrong value")
-            //    };
-            //    string idString = orderId.ToString().ToLower();
-            //    string cmd = $"UPDATE {tblName} SET OrderState={(int)newState} WHERE Id='{orderId}' OR RelateOrderIds='{idString}'";
-            //    int affectRows = await context.Database.ExecuteSqlRawAsync(cmd);
-
-            //    return affectRows > 0;
-            //}
-
     }
 }

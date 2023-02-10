@@ -6,10 +6,9 @@ namespace Oms.Domain.Orders
     {
         [Description("待处理")]
         Created,
+        [Description("已提交")]
         Submited,
-        CheckingStock,
         StockChecked,
-        MatchingTransportLine,
         TransportLineMatched,
         [Description("待下发")]
         WaitforDispatch,

@@ -82,7 +82,7 @@ namespace Oms.Domain.Processings
             IsScheduled = true;
         }
 
-        public void TaskExecuteSuccess(ProcessingSteps step, bool waitforResponse = false)
+        public void TaskExecuteSuccess(ProcessingSteps step, bool waitforResponse = true)
         {
             var currentStep = GetCurrentStep();
             if (step != currentStep)
@@ -91,9 +91,12 @@ namespace Oms.Domain.Processings
             Job = ProcessingJob.Empty;
             // 当一个job完成时，如果不需要等待异步的api回传结果，步进器才可以进下一步
             if (!waitforResponse)
+            {
                 Processed |= (int)step;
-            IsScheduled = !waitforResponse;
-            ExecutedCount = 0;
+                ExecutedCount = 0;
+            }
+            IsScheduled = waitforResponse ? true : false;
+            
         }
 
         public void TaskExecuteFailed(ProcessingSteps step)

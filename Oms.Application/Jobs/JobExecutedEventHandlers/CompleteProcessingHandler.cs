@@ -11,33 +11,32 @@ namespace Oms.Application.Jobs.JobExecutedEventHandlers
         : ILocalEventHandler<JobExecutedEvent>, ITransientDependency
     {
         readonly IProcessingRepository repository;
-        readonly ILogger<CompleteProcessingHandler> logger;
         readonly IUnitOfWorkManager uom;
+        readonly IJobManager jobManager;
 
-        public CompleteProcessingHandler(IProcessingRepository repository, ILogger<CompleteProcessingHandler> logger, IUnitOfWorkManager uom)
+        public CompleteProcessingHandler(IProcessingRepository repository, IUnitOfWorkManager uom, IJobManager jobManager)
         {
             this.repository = repository;
-            this.logger = logger;
             this.uom = uom;
+            this.jobManager = jobManager;
         }
 
         public async Task HandleEventAsync(JobExecutedEvent eventData)
         {
             var processing = await repository.GetByOrderIdAsync(eventData.OrderId);
-            if (processing is null)
-            {
-                logger.LogError("Can not find processing entity with {orderId} orderId", eventData.OrderId);
-                return;
-            }
+            if (processing is null) return;
 
             if (eventData.IsSuccess)
+            {
                 processing.TaskExecuteSuccess(eventData.Proc);
+
+            }
 
             if (!eventData.IsSuccess && processing.ExecutedCount <= 5)
             {
                 var job = processing.Job;
+                await jobManager.CancelJobAsync(job.JobName, job.GroupName);
                 processing.TaskExecuteFailed(eventData.Proc);
-                processing.SetBuiltTaskResult(job.JobName, job.GroupName, job.TriggerName, job.TriggerGroup);
             }
 
             await uom.Current.SaveChangesAsync();

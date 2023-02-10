@@ -16,7 +16,6 @@ namespace Oms.Application.Contracts.CollaborationServices.ThreePL
         Task<List<WarehouseDescription>> GetWarehouse(string tenantId, int consignerId);
         Task<List<AddressDescription>> GetAddress(string tenantId);
         Task<List<AddressDescription>> GetAddressByCustomer(string tenantId, string customerId);
-        Task<AddressDescription> GetAddressById(string tenantId, string addressId);
         Task<List<RouteScheme>> GetRouteScheme(string tenantId);
         Task<RouteScheme> GetRouteSchemeById(string tenantId, string id);
         Task<List<Region>> GetRegion(string tenantId);

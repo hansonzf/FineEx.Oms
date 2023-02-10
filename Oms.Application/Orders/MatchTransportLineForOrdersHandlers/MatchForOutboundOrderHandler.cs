@@ -76,18 +76,27 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
                 int index = 0;
                 foreach (var item in transPlan.TransPlanDetails.OrderBy(d => d.Sort))
                 {
-                    resources.Add(new TransportResource
+                    if (!string.IsNullOrEmpty(item.LabelKey))
                     {
-                        Index = index++,
-                        ResourceId = item.LabelKey,
-                        Name = item.Label
-                    });
-                    resources.Add(new TransportResource
+                        resources.Add(new TransportResource
+                        {
+                            Index = index++,
+                            ResourceId = item.LabelKey,
+                            Name = item.Label,
+                            Type = TransportResourceTypes.LogisticsCenter
+                        });
+                    }
+
+                    if (!string.IsNullOrEmpty(item.TipKey))
                     {
-                        Index = index++,
-                        ResourceId = item.TipKey,
-                        Name = item.TipKey
-                    });
+                        resources.Add(new TransportResource
+                        {
+                            Index = index++,
+                            ResourceId = item.TipKey,
+                            Name = item.Tip,
+                            Type = TransportResourceTypes.Vendor
+                        });
+                    }
                 }
 
                 var strategy = new TransportStrategy(transPlan.PlanName, transPlan.Remark, 1, resources);

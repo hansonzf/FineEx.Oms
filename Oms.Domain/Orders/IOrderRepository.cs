@@ -21,14 +21,6 @@ namespace Oms.Domain.Orders
         Task<bool> UpdateOrderAsync<TOrder>(TOrder order)
             where TOrder : BusinessOrder;
         Task<string> GetRelatedOrderIds(Guid masterOrderId, BusinessTypes businessType);
-        Task<string> GetOrderTenantIdAsync(Guid orderId, BusinessTypes businessType);
-
-
-
-        //Task<bool> ScheduledJobByOrder<TOrder>(Guid orderId, ProcessingSteps step)
-        //    where TOrder : BusinessOrder;
-        //Task<bool> ScheduledJobByOrder(Guid orderId, BusinessTypes businessType, ProcessingSteps step);
-        //Task ReceivedTmsAcknowledgement(Guid orderId, BusinessTypes businessType, string transOrderNumber);
-        //Task ReceivedWmsAcknowledgement(Guid orderId, BusinessTypes businessType, string wmsOrderNumber);
+        Task<string?> GetOrderTenantIdAsync(Guid orderId, BusinessTypes businessType);
     }
 }

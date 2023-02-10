@@ -2,17 +2,21 @@
 using Oms.Domain.Orders;
 using Oms.Domain.Orders.Specifications;
 using Oms.Domain.OutboundOrders;
+using Oms.Domain.Processings;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Uow;
 
 namespace Oms.Application.Orders
 {
     public class OutboundOrderAppService : ApplicationService, IOutboundOrderAppService
     {
-        private readonly IOutboundOrderRepository repository;
+        readonly IOutboundOrderRepository repository;
+        readonly IProcessingRepository processingRepository;
 
-        public OutboundOrderAppService(IOutboundOrderRepository repository)
+        public OutboundOrderAppService(IOutboundOrderRepository repository, IProcessingRepository processingRepository)
         {
             this.repository = repository;
+            this.processingRepository = processingRepository;
         }
 
         public async Task<ServiceResult> CreateOutboundOrderAsync(OutboundOrderDto orderDto)
@@ -176,12 +180,16 @@ namespace Oms.Application.Orders
                     Message = "Argument 'result' is required"
                 };
 
+            using var uom = UnitOfWorkManager.Begin();
+
             if (result.PassedList is not null && result.PassedList.Any())
             {
                 foreach (var i in result.PassedList)
                 {
                     var order = await repository.GetAsync(i.OutBoundID);
                     if (order is null) continue;
+                    var proc = await processingRepository.GetByOrderIdAsync(order.Id);
+                    proc.Complete(ProcessingSteps.B2bCheckoutInventory);
 
                     var heldDetail = i.DetailList.Select(
                         d => new HeldStockResult
@@ -201,6 +209,8 @@ namespace Oms.Application.Orders
                 {
                     var order = await repository.GetAsync(i.OutBoundID);
                     if (order is null) continue;
+                    var proc = await processingRepository.GetByOrderIdAsync(order.Id);
+                    proc.Complete(ProcessingSteps.B2bCheckoutInventory);
 
                     var emptyResult = order.Details.Select(
                         d => new HeldStockResult
@@ -214,7 +224,7 @@ namespace Oms.Application.Orders
                 }
             }
 
-            await UnitOfWorkManager.Current.SaveChangesAsync();
+            await uom.CompleteAsync();
             return new ServiceResult
             {
                 Success = true,

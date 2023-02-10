@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using Newtonsoft.Json;
+using System.Security.Cryptography;
 using System.Text;
 using Volo.Abp;
 
@@ -6,6 +7,7 @@ namespace Oms.Domain.Orders
 {
     public class OutboundOrder : BusinessOrder
     {
+        List<CheckoutProduct> _details = new List<CheckoutProduct>();
         public long OutboundId { get; private set; }
         public CustomerDescription Customer { get; private set; }
         public CargoOwnerDescription CargoOwner { get; private set; }
@@ -17,7 +19,6 @@ namespace Oms.Domain.Orders
         public string CombinationCode { get; private set; }
         public DateTime ExpectingOutboundTime { get; private set; }
         public DateTime? FactOutboundTime { get; private set; }
-        public List<CheckoutProduct> Details { get; protected set; }
 
         protected override bool IsCombinationSupport => true;
         protected override bool IsNeedToCheckInventory => true;
@@ -38,9 +39,35 @@ namespace Oms.Domain.Orders
             OutboundType = outboundType;
             Warehouse = warehouse;
             ExpectingOutboundTime = expectingOutboundTime;
-            Details = new List<CheckoutProduct>();
             CalculateCombinationCode();
         }
+
+        public List<CheckoutProduct> Details
+        {
+            get
+            {
+                if (!_details.Any() && !string.IsNullOrEmpty(_orderDetails))
+                {
+                    _details = JsonConvert.DeserializeObject<List<CheckoutProduct>>(_orderDetails) ?? new List<CheckoutProduct>();
+                }
+
+                return _details;
+            }
+            set
+            {
+                if (value is null)
+                {
+                    _orderDetails = String.Empty;
+                    _details.Clear();
+                }
+                else
+                {
+                    _orderDetails = JsonConvert.SerializeObject(value);
+                    _details = value;
+                }
+            }
+        }
+
 
         public void CalculateCombinationCode()
         {
@@ -168,14 +195,6 @@ namespace Oms.Domain.Orders
             }
         }
 
-
-
-
-
-
-
-
-
         public override void CheckInventory(bool automaticCheck = false)
         {
             base.CheckInventory(automaticCheck);
@@ -186,12 +205,14 @@ namespace Oms.Domain.Orders
         {
             base.SetCheckedInventoryResult(stockResult);
             CalculateCombinationCode();
+            var detailList = new List<CheckoutProduct>(Details);
             foreach (var item in stockResult)
             {
-                var detail = Details.SingleOrDefault(d => d.DetailNumber == item.DetailNumber);
+                var detail = detailList.SingleOrDefault(d => d.DetailNumber == item.DetailNumber);
                 if (detail is null) continue;
                 detail.HoldingStock(item.HeldQty);
             }
+            Details = detailList;
         }
 
         public override void MatchTransportStrategy(bool automaticMatch = false)

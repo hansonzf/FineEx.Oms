@@ -2,6 +2,8 @@
 using Oms.Application.Contracts;
 using Oms.Application.Contracts.CollaborationServices.ThreePL;
 using Oms.Domain.Orders;
+using RestSharp;
+using System;
 
 namespace ThreePL.Client
 {
@@ -12,12 +14,13 @@ namespace ThreePL.Client
         public ThreePLService(IHttpClientFactory httpClientFactory)
         {
             httpClient = httpClientFactory.CreateClient("3pl");
-            httpClient.BaseAddress = new Uri("https://webtest.3pl.fineyun.cn:9012/");
+            //httpClient.BaseAddress = new Uri("http://10.32.18.116:8086/");
+            httpClient.BaseAddress = new Uri("https://webtest.3pl.fineyun.cn:9012");
         }
 
         public async Task<List<CustomerCargoOwner>> GetCustomerCargoOwner(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -35,26 +38,26 @@ namespace ThreePL.Client
                     .Select(o => new CargoOwnerDescription(o.TripleId ?? 0, o.Name))
                     .ToList();
             }
-            
+
             return result;
         }
 
         public async Task<AddressDescription?> GetWarehouseAddress(string tenantId, WarehouseDescription warehouse)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
-            var res = await httpClient.GetStringAsync($@"/api/warehouse-management/{warehouse.WarehouseId}/detail");
-            var resp = JsonConvert.DeserializeObject<WarehouseDetailDto>(res);
+            var res = await httpClient.GetStringAsync($@"/api/administration/location/detail?addressType=1&systemWarehouseId={warehouse.WarehouseId}");
+            var resp = JsonConvert.DeserializeObject<LocationDto>(res);
             return resp is not null ?
-                new AddressDescription(string.Empty, resp.Contact, resp.ContactPhone, resp.Name, resp.Province, resp.City, resp.District, resp.Address) :
+                new AddressDescription(resp.Id, resp.Contact, resp.ContactPhone, resp.Name, resp.Province, resp.City, resp.District, resp.DetailAddress) :
                 null;
         }
 
         public async Task<List<AddressDescription>> GetAddress(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -68,7 +71,7 @@ namespace ThreePL.Client
 
         public async Task<List<AddressDescription>> GetAddressByCustomer(string tenantId, string customerId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -88,18 +91,9 @@ namespace ThreePL.Client
             return result;
         }
 
-        public async Task<AddressDescription> GetAddressById(string tenantId, string addressId)
-        {
-            var addrList = await GetAddress(tenantId);
-            if (!addrList.Any())
-                return null;
-
-            return addrList.SingleOrDefault(a => a.AddressId == addressId);
-        }
-
         public async Task<List<CargoOwnerDescription>> GetCargoOwner(string tenantId, string customerId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -113,7 +107,7 @@ namespace ThreePL.Client
 
         public async Task<List<CargoOwnerDescription>> GetCargoOwner(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -127,7 +121,7 @@ namespace ThreePL.Client
 
         public async Task<List<TransportResource>> GetCarrier(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -149,7 +143,7 @@ namespace ThreePL.Client
 
         public async Task<List<CustomerDescription>> GetCustomer(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -163,7 +157,7 @@ namespace ThreePL.Client
 
         public async Task<List<TransportResource>> GetLogisticsCenter(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -189,7 +183,7 @@ namespace ThreePL.Client
 
         public async Task<TransportResource> GetLogisticsCenter(string tenantId, string logisticKey)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -198,7 +192,8 @@ namespace ThreePL.Client
             if (res == null) return null;
             var respObj = JsonConvert.DeserializeObject<LogisticsCenterDto>(res);
 
-            return new TransportResource {
+            return new TransportResource
+            {
                 ResourceId = respObj.Id,
                 Type = TransportResourceTypes.LogisticsCenter,
                 Name = respObj.Name,
@@ -213,7 +208,7 @@ namespace ThreePL.Client
 
         public async Task<List<Region>> GetRegion(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -227,7 +222,7 @@ namespace ThreePL.Client
 
         public async Task<List<RouteScheme>> GetRouteScheme(string tenantId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -247,7 +242,7 @@ namespace ThreePL.Client
 
         public async Task<RouteScheme?> GetRouteSchemeById(string tenantId, string id)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -267,7 +262,7 @@ namespace ThreePL.Client
 
         public async Task<List<RouteScheme>> GetRouteScheme(string tenantId, string customerId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
@@ -287,22 +282,24 @@ namespace ThreePL.Client
 
         public async Task<DataResult<List<TransportPlanRet>>> GetTransPlan(string tenantId, OrderDeliveryInfo orderInfo)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }
-            var customerId = string.Empty;
+            int customerId = 0;
             if (orderInfo.BusinessType == 3)
             {
-                customerId = orderInfo.CustomerId.ToString();
+                customerId = Convert.ToInt32(orderInfo.CustomerId);
             }
             else
             {
-                var cargoOwnerRes = await httpClient.GetStringAsync($@"/api/consigner-management/{customerId}/consigner");
+                var cargoOwnerRes = await httpClient.GetStringAsync("/api/consigner-management/consigner/all");
                 var cargoOwnerList = JsonConvert.DeserializeObject<ListDto<List<ConsignerDto>>>(cargoOwnerRes);
-                customerId = cargoOwnerList.Items.Where(b => b.TripleId == Convert.ToInt32(orderInfo.CustomerId)).ToList().FirstOrDefault()?.CustomerId;
+                var cargoOwnerItem = cargoOwnerList.Items.Where(b => b.CustomerTripleId == orderInfo.CustomerId).FirstOrDefault();
+                if (cargoOwnerItem != null)
+                    customerId = cargoOwnerItem.CustomerTripleId;
             }
-            if (string.IsNullOrEmpty(customerId))
+            if (customerId <= 0)
             {
                 return new DataResult<List<TransportPlanRet>> { Message = "客户Id参数为空" };
             }
@@ -453,7 +450,7 @@ namespace ThreePL.Client
 
         public async Task<List<WarehouseDescription>> GetWarehouse(string tenantId, int consignerId)
         {
-            if (!string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId) && !httpClient.DefaultRequestHeaders.Contains("tenant"))
             {
                 httpClient.DefaultRequestHeaders.Add("tenant", tenantId);
             }

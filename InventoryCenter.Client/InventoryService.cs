@@ -30,12 +30,14 @@ namespace InventoryCenter.Client
             var requestOrders = orders.Select(o => new OrderInfoModel
             {
                 OutBoundID = o.OutboundId,
-                MemberID = o.CargoOwner.CargoOwnerId,
+                MemberID = o.Customer.CustomerId,
+                //MemberID = o.CargoOwner.CargoOwnerId,
                 WarehouseID = o.Warehouse.WarehouseId,
                 DetailList = o.Details.Select(d => new OrderInfoDetailModel
                 {
                     CommodityID = d.ProductId,
-                    MemberID = o.CargoOwner.CargoOwnerId,
+                    //MemberID = o.CargoOwner.CargoOwnerId,
+                    MemberID = o.Customer.CustomerId,
                     Amount = d.RequiredQty,
                     OrderDetailID = d.DetailNumber,
                     ProductBatch = d.ProductBatch,
@@ -73,7 +75,7 @@ namespace InventoryCenter.Client
             var req = new RestRequest(url, Method.Post);
             req.AddBody(body, "application/json");
             var resp = await client.PostAsync<BaseResponse>(req);
-            return new ServiceResult { Success = resp.Flag, Message = resp.Message };
+            return new ServiceResult { Success = true, Message = resp.Message };
         }
 
         public async Task<ServiceResult> ReleaseStock(string partitionId, IEnumerable<OutboundOrderDto> orders)

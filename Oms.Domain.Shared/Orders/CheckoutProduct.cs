@@ -35,6 +35,7 @@ namespace Oms.Domain.Orders
 
         public void BindToOrder(Guid orderId)
         {
+            DetailNumber = DateTime.Now.Ticks;
             OrderId = orderId;
         }
 

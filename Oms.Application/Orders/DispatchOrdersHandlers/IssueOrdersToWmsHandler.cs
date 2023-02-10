@@ -22,27 +22,76 @@ namespace Oms.Application.Orders.DispatchOrdersHandlers
 
         public async Task HandleEventAsync(DispatchOrdersEvent eventData)
         {
-            var orders = await repository.GetOrdersByBusinessType(eventData.OrderIds, eventData.BusinessType);
-            string warehouseId = "";
-            var ordersDto = new List<BusinessOrderDto>();
-            switch (eventData.BusinessType)
+            var orders = new List<BusinessOrder>();
+            if (eventData.OrderId.HasValue)
             {
-                case BusinessTypes.OutboundWithTransport:
-                    var outboundOrders = objectMapper.Map<IEnumerable<OutboundOrder>, IEnumerable<OutboundOrderDto>>(orders.OfType<OutboundOrder>());
-                    ordersDto = outboundOrders.OfType<BusinessOrderDto>().ToList();
-                    await wmsService.DispatchOutboundOrdersAsync(warehouseId, ordersDto);
-                    break;
-                case BusinessTypes.InboundWithTransport:
-                    var inboundOrders = objectMapper.Map<IEnumerable<InboundOrder>, IEnumerable<InboundOrderDto>>(orders.OfType<InboundOrder>());
-                    ordersDto = inboundOrders.OfType<BusinessOrderDto>().ToList();
-                    await wmsService.DispatchOutboundOrdersAsync(warehouseId, ordersDto);
-                    break;
-                case BusinessTypes.Transport:
-                case BusinessTypes.None:
-                default:
-                    break;
+                var id = await repository.GetOrderIdByOrderUuidAsync(eventData.OrderId.Value, eventData.BusinessType);
+                if (!id.HasValue) return;
+                var o = await repository.GetOrderByIdAsync(id.Value, eventData.BusinessType);
+                if (o == null) return;
+                orders.Add(o);
             }
-            
+            else if (eventData.OrderIds.Any())
+            {
+                var o = await repository.GetOrdersByBusinessType(eventData.OrderIds, eventData.BusinessType);
+                if (o.Any())
+                    orders.AddRange(o);
+            }
+
+            var orderDictionary = PrepareDispatchData(eventData.BusinessType, orders);
+
+            if (eventData.BusinessType == BusinessTypes.InboundWithTransport)
+            {
+                foreach (var item in orderDictionary)
+                {
+                    await DispatchInboundOrders(item.Key, item.Value.OfType<InboundOrder>());
+                }
+            }
+
+            if (eventData.BusinessType == BusinessTypes.OutboundWithTransport)
+            {
+                foreach (var item in orderDictionary)
+                {
+                    await DispatchOutboundOrders(item.Key, item.Value.OfType<OutboundOrder>());
+                }
+            }
+        }
+
+        Dictionary<int, IEnumerable<BusinessOrder>> PrepareDispatchData(BusinessTypes businessType, IEnumerable<BusinessOrder> orders)
+        {
+            var result = new Dictionary<int, IEnumerable<BusinessOrder>>();
+
+            if (businessType == BusinessTypes.InboundWithTransport)
+            {
+                var inboundGroup = orders.OfType<InboundOrder>().GroupBy(o => o.Warehouse);
+                foreach ( var group in inboundGroup)
+                {
+                    result.Add(group.Key.WarehouseId, group);
+                }
+            }
+
+            if (businessType == BusinessTypes.OutboundWithTransport)
+            {
+                var outboundGroup = orders.OfType<OutboundOrder>().GroupBy(o => o.Warehouse);
+                foreach (var group in outboundGroup)
+                {
+                    result.Add(group.Key.WarehouseId, group);
+                }
+            }
+
+            return result;
+        }
+
+        async Task DispatchOutboundOrders(int warehouseId, IEnumerable<OutboundOrder> outboundOrders)
+        {
+            var orders = objectMapper.Map<IEnumerable<OutboundOrder>, IEnumerable<OutboundOrderDto>>(outboundOrders);
+            await wmsService.DispatchOutboundOrdersAsync(warehouseId.ToString(), orders);
+        }
+
+        async Task DispatchInboundOrders(int warehouseId, IEnumerable<InboundOrder> inboundOrders)
+        {
+            var orders = objectMapper.Map<IEnumerable<InboundOrder>, IEnumerable<InboundOrderDto>>(inboundOrders);
+            await wmsService.DispatchOutboundOrdersAsync(warehouseId.ToString(), orders);
         }
     }
 }
