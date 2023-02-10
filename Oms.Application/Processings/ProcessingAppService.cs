@@ -37,6 +37,12 @@ namespace Oms.Application.Processings
             await UnitOfWorkManager.Current.SaveChangesAsync();
         }
 
+        public async Task ExecutedCheckStockAsync(Guid orderId, BusinessTypes businessType)
+        { 
+            var processing = await repository.GetByOrderIdAsync(orderId);
+            if (processing is null) return;
+        }
+
         public async Task<DataResult<ProcessingDto>> CreateProcessingAsync(ProcessingDto dto)
         {
             var processing = ObjectMapper.Map<ProcessingDto, Processing>(dto);

@@ -3,6 +3,7 @@ using Oms.Application.Contracts;
 using Oms.Application.Contracts.CollaborationServices;
 using Oms.Application.Contracts.CollaborationServices.Inventory;
 using Oms.Application.Orders;
+using Oms.Domain.Orders;
 using RestSharp;
 using Volo.Abp.DependencyInjection;
 
@@ -41,6 +42,25 @@ namespace InventoryCenter.Client
                     StockType = (int)d.StockType
                 }).ToList()
             });
+            /*
+            var master = orders.FirstOrDefault(o => o.RelationType == RelationTypes.CombinedMaster);
+
+            // 如果master为空，说明传入的订单没有合并过，是独立的订单，不需要特殊处理
+            if (master is not null)
+            {
+                // 如果是合并过的订单，那么需要将所有订单的明细拼接成一个订单，提交库存审核
+                OrderInfoModel masterRequest = requestOrders.Single(o => o.OutBoundID == master.OutboundId);
+                foreach (var order in requestOrders)
+                {
+                    if (order.OutBoundID == master.OutboundId)
+                        continue;
+
+                    masterRequest.DetailList.AddRange(order.DetailList);
+                }
+                requestOrders = new OrderInfoModel[1] { masterRequest };
+            }
+            */
+
             var request = new SalesInventoryAuditRequest
             {
                 BusinessType = 2,

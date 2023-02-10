@@ -10,7 +10,7 @@ using Volo.Abp.Users;
 namespace Oms.HttpApi
 {
     [ApiController]
-    [Route("api/transportplan")]
+    [Route("omsapi/transportplan")]
     public class TransportPlanController : BaseController
     {
         readonly IOrderOperationAppService operationService;

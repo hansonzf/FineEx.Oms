@@ -22,6 +22,7 @@ namespace Oms.Application
         {
             try
             {
+                var uom = unitOfWorkManager.Begin();
                 var processings = await repository.GetWaitforBuildProcessing();
                 // Todo: Move this value into configuration file
                 int buildTaskWorkInterval = 30;
@@ -33,7 +34,7 @@ namespace Oms.Application
                         p.BuildingTask();
                     }
 
-                    await unitOfWorkManager.Current.SaveChangesAsync();
+                    await uom.SaveChangesAsync();
                 }
             }
             catch (Exception ex)

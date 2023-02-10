@@ -105,7 +105,7 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
             var order = await repository.GetAsync<InboundOrder>(orderId);
             if (order is null) return false;
 
-            var warehouseAddr = await dataService.GetWarehouseAddress(tenantId, order.CargoOwner.CargoOwnerId, order.Warehouse);
+            var warehouseAddr = await dataService.GetWarehouseAddress(tenantId, order.Warehouse);
             var orderInfo = new OrderDeliveryInfo
             {
                 BusinessType = 2,
@@ -142,7 +142,7 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
             var order = await repository.GetAsync<OutboundOrder>(orderId);
             if (order is null) return false;
 
-            var warehouseAddr = await dataService.GetWarehouseAddress(tenantId, order.CargoOwner.CargoOwnerId, order.Warehouse);
+            var warehouseAddr = await dataService.GetWarehouseAddress(tenantId, order.Warehouse);
             var orderInfo = new OrderDeliveryInfo
             {
                 BusinessType = 1,

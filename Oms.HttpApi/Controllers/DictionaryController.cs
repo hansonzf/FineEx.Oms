@@ -7,7 +7,7 @@ using System.Net;
 namespace Oms.HttpApi.Controllers
 {
     [ApiController]
-    [Route("api/dictionary")]
+    [Route("omsapi/dictionary")]
     public class DictionaryController : BaseController
     {
         readonly IThreePLService service;

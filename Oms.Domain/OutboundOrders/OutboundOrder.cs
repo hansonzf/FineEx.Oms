@@ -178,7 +178,7 @@ namespace Oms.Domain.Orders
 
         public override void CheckInventory(bool automaticCheck = false)
         {
-            base.CheckInventory();
+            base.CheckInventory(automaticCheck);
             CalculateCombinationCode();
         }
 

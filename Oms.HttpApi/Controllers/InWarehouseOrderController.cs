@@ -22,7 +22,7 @@ using static Oms.HttpApi.Models.RspInWarehouseOrderQuery;
 namespace Oms.HttpApi
 {
     [ApiController]
-    [Route("api/inwarehouseorder")]
+    [Route("omsapi/inwarehouseorder")]
     public class InWarehouseOrderController : BaseController
     {
         readonly IInboundOrderAppService orderService;

@@ -11,7 +11,7 @@ using Oms.HttpApi.Models;
 namespace Oms.HttpApi
 {
     [ApiController]
-    [Route("api/transportorder")]
+    [Route("omsapi/transportorder")]
     public class TransportOrderController : BaseController
     {
         readonly ITransportOrderAppService orderService;

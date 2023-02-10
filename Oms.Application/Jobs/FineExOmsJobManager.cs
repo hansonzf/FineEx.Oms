@@ -9,12 +9,10 @@ namespace Oms.Application.Jobs
     public class FineExOmsJobManager : IJobManager
     {
         private readonly IScheduler scheduler;
-        private readonly IJobDataMapperFactory jobDataMapperFactory;
 
-        public FineExOmsJobManager(IScheduler scheduler, IJobDataMapperFactory jobDataMapperFactory)
+        public FineExOmsJobManager(IScheduler scheduler)
         {
             this.scheduler = scheduler;
-            this.jobDataMapperFactory = jobDataMapperFactory;
         }
 
         public async Task<bool> ExistJobAsync(string jobName, string jobGroup)

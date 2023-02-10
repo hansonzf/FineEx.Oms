@@ -11,7 +11,7 @@ using Oms.HttpApi.Models;
 namespace Oms.HttpApi
 {
     [ApiController]
-    [Route("api/outwarehouseorder")]
+    [Route("omsapi/outwarehouseorder")]
     public class OutWarehouseOrderController : BaseController
     {
         readonly IOutboundOrderAppService orderService;
@@ -40,6 +40,7 @@ namespace Oms.HttpApi
         public async Task<RspModel> AddOutWarehouseOrder(ReqOutWarehouseOderAdd req)
         {
             var dto = ObjectMapper.Map<ReqOutWarehouseOderAdd, OutboundOrderDto>(req);
+            dto.TenantId = CurrentUser.TenantId;
             var result = await orderService.CreateOutboundOrderAsync(dto);
 
             return RspModel.Success();
@@ -296,9 +297,9 @@ namespace Oms.HttpApi
         [HttpPost("CargoOwnerQuery")]
         public async Task<RspModel<List<RspCargoOwner>>> CargoOwnerQuery(ReqCustomerCargoOwnerQuery reqCustomerCargoOwnerQuery)
         {
-            //var resp = await dataService.GetCargoOwner(CurrentUser.TenantId, reqCustomerCargoOwnerQuery.CustomerId);
-            //var result = resp.Select(c => new RspCargoOwner { CargoOwnerId = c.CargoOwnerId, CargoOwnerName = c.CargoOwnerName }).ToList();
-            return RspModel.Success<List<RspCargoOwner>>(new List<RspCargoOwner>());
+            var resp = await dataService.GetCargoOwner(CurrentUser.TenantId, reqCustomerCargoOwnerQuery.CustomerId);
+            var result = resp.Select(c => new RspCargoOwner { CargoOwnerId = c.CargoOwnerId, CargoOwnerName = c.CargoOwnerName }).ToList();
+            return RspModel.Success<List<RspCargoOwner>>(result);
         }
 
         /// <summary>
