@@ -57,7 +57,7 @@ namespace Oms.Application.Orders.CheckInventoryforOrdersHandlers
             foreach (var orderGroup in outboundOrders.GroupBy(o => o.Warehouse))
             {
                 var orders = objectMapper.Map<IEnumerable<OutboundOrder>, IEnumerable<OutboundOrderDto>>(orderGroup);
-                var result = await inventoryService.CheckStock(orderGroup.Key.WarehouseId.ToString(), orders);
+                var result = await inventoryService.CheckStock(orderGroup.Key.InterfaceWarehouseId.ToString(), orders);
                 if (!result.Success)
                     throw new BusinessException(message: "库存审核失败");
             }

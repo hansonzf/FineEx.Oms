@@ -30,21 +30,19 @@ namespace InventoryCenter.Client
             var requestOrders = orders.Select(o => new OrderInfoModel
             {
                 OutBoundID = o.OutboundId,
-                MemberID = o.Customer.CustomerId,
-                //MemberID = o.CargoOwner.CargoOwnerId,
-                WarehouseID = o.Warehouse.WarehouseId,
+                MemberID = o.CargoOwner.CargoOwnerId,
+                WarehouseID = o.Warehouse.InterfaceWarehouseId,
                 DetailList = o.Details.Select(d => new OrderInfoDetailModel
                 {
                     CommodityID = d.ProductId,
-                    //MemberID = o.CargoOwner.CargoOwnerId,
-                    MemberID = o.Customer.CustomerId,
+                    MemberID = o.CargoOwner.CargoOwnerId,
                     Amount = d.RequiredQty,
                     OrderDetailID = d.DetailNumber,
                     ProductBatch = d.ProductBatch,
                     StockType = (int)d.StockType
                 }).ToList()
             });
-            /*
+            /* 库存审核时，应该不必要合并过的订单必须一起审核。后续流程只关注所有要合并的订单的状态是否一致
             var master = orders.FirstOrDefault(o => o.RelationType == RelationTypes.CombinedMaster);
 
             // 如果master为空，说明传入的订单没有合并过，是独立的订单，不需要特殊处理
@@ -75,7 +73,7 @@ namespace InventoryCenter.Client
             var req = new RestRequest(url, Method.Post);
             req.AddBody(body, "application/json");
             var resp = await client.PostAsync<BaseResponse>(req);
-            return new ServiceResult { Success = true, Message = resp.Message };
+            return new ServiceResult { Success = resp.Flag, Message = resp.Message };
         }
 
         public async Task<ServiceResult> ReleaseStock(string partitionId, IEnumerable<OutboundOrderDto> orders)

@@ -38,7 +38,7 @@ namespace Oms.Application.Orders.DispatchOrdersHandlers
                     orders.AddRange(o);
             }
 
-            var orderDictionary = PrepareDispatchData(eventData.BusinessType, orders);
+            var orderDictionary = GroupOrdersByWarehouse(eventData.BusinessType, orders);
 
             if (eventData.BusinessType == BusinessTypes.InboundWithTransport)
             {
@@ -57,7 +57,7 @@ namespace Oms.Application.Orders.DispatchOrdersHandlers
             }
         }
 
-        Dictionary<int, IEnumerable<BusinessOrder>> PrepareDispatchData(BusinessTypes businessType, IEnumerable<BusinessOrder> orders)
+        Dictionary<int, IEnumerable<BusinessOrder>> GroupOrdersByWarehouse(BusinessTypes businessType, IEnumerable<BusinessOrder> orders)
         {
             var result = new Dictionary<int, IEnumerable<BusinessOrder>>();
 

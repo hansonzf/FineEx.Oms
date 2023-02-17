@@ -117,6 +117,7 @@ namespace Oms.Domain.Processings
                 throw new ArgumentException(nameof(step));
 
             Processed |= (int)step;
+            Job = ProcessingJob.Empty;
             IsScheduled = false;
             ExecutedCount = 0;
         }

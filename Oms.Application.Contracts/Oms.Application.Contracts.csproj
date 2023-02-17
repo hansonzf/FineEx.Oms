@@ -7,12 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="FCL.IdWorker" Version="1.0.0.1" />
     <PackageReference Include="Volo.Abp.Ddd.Application.Contracts" Version="6.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Oms.Domain.Shared\Oms.Domain.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FCL.IdWorker">
+      <HintPath>..\..\..\WebApplication2\WebApi.Host\bin\Debug\net6.0\FCL.IdWorker.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -23,13 +23,16 @@ namespace Oms.Application.Jobs.JobExecutedEventHandlers
 
         public async Task HandleEventAsync(JobExecutedEvent eventData)
         {
+            var unitOfWork = uom.Begin();
             var processing = await repository.GetByOrderIdAsync(eventData.OrderId);
             if (processing is null) return;
 
             if (eventData.IsSuccess)
             {
-                processing.TaskExecuteSuccess(eventData.Proc);
+                if (!processing.IsScheduled && processing.Job == null)
+                    return;
 
+                processing.TaskExecuteSuccess(eventData.Proc, true);
             }
 
             if (!eventData.IsSuccess && processing.ExecutedCount <= 5)
@@ -39,7 +42,8 @@ namespace Oms.Application.Jobs.JobExecutedEventHandlers
                 processing.TaskExecuteFailed(eventData.Proc);
             }
 
-            await uom.Current.SaveChangesAsync();
+            //await uom.Current.SaveChangesAsync();
+            await unitOfWork.CompleteAsync();
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Oms.Application.Jobs
         {
             try
             {
-                using var uow = uom.Begin();
+                using var unitOfWork = uom.Begin();
                 var dataMap = context.MergedJobDataMap;
                 string? id = dataMap.GetString(JobConstants.JobDataMapOrderIdKeyName);
                 string? biz = dataMap.GetString(JobConstants.JobDataMapBusinessTypeKeyName);
@@ -36,7 +36,7 @@ namespace Oms.Application.Jobs
                 var order = await repository.GetOrderByIdAsync(orderId, businessType);
                 if (order == null) return;
                 order.MatchTransportStrategy(true);
-                await uow.CompleteAsync();
+                await unitOfWork.CompleteAsync();
             }
             catch (Exception ex)
             {

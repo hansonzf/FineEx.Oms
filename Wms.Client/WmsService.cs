@@ -1,12 +1,39 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using Oms.Application.Contracts;
 using Oms.Application.Contracts.CollaborationServices;
 using Oms.Application.Contracts.CollaborationServices.Wms;
 using Oms.Application.Orders;
 using RestSharp;
+using System.Collections.Concurrent;
 
 namespace Wms.Client
 {
+    public static class JsonReaderUtility
+    {
+        public static string ReadFileAsObject(string folder, string file)
+        {
+            string jsonfile = $"D:\\PracticeBook\\WebApplication2\\CollaborationServiceTest\\{folder}\\{file}.json";//JSON文件路径
+
+            using StreamReader sr = File.OpenText(jsonfile);
+            using JsonTextReader reader = new JsonTextReader(sr);
+            JObject o = (JObject)JToken.ReadFrom(reader);
+            var value = o.ToString();
+            return value;
+        }
+
+        public static string ReadFileAsArray(string folder, string file)
+        {
+            string jsonfile = $"D:\\PracticeBook\\WebApplication2\\CollaborationServiceTest\\{folder}\\{file}.json";//JSON文件路径
+
+            using StreamReader sr = File.OpenText(jsonfile);
+            using JsonTextReader reader = new JsonTextReader(sr);
+            JArray o = (JArray)JToken.ReadFrom(reader);
+            var value = o.ToString();
+            return value;
+        }
+    }
     public class WmsService : IWmsService
     {
         readonly RestClient client;
@@ -26,7 +53,9 @@ namespace Wms.Client
         {
             var request = ConvertInboundIssueToWmsRequest(orders);
             var body = JsonConvert.SerializeObject(request);
-            string url = $"{baseUrl}/app/upstream/in-order";
+            string postUrl = $"{baseUrl}/WareHouseIn/InOrderReceive";
+            //string url = $"{baseUrl}/app/upstream/in-order";
+            var url = SignUtility.GetPostURL(apiKey, apiSecret, warehouseId.ToString(), "fineex.wms.inorder.add", postUrl, body);
             var req = new RestRequest(url, Method.Post);
             req.AddBody(body, "application/json");
             var resp = await client.PostAsync<BaseResponse>(req);
@@ -41,8 +70,12 @@ namespace Wms.Client
         public async Task<ServiceResult> DispatchOutboundOrdersAsync(string warehouseId, IEnumerable<BusinessOrderDto> orders)
         {
             var request = ConvertOutboundIssueToWmsRequest(orders);
-            var body = JsonConvert.SerializeObject(request);
-            string url = $"{baseUrl}/app/upstream/out-order";
+            //var body = JsonConvert.SerializeObject(request, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+            var body = JsonReaderUtility.ReadFileAsObject("WmsServiceTestPayload", "dispatch-outbound-order");
+            string postUrl = $"{baseUrl}/WareHouseOut/add";
+            //var url = SignUtility.GetPostURL(apiKey, apiSecret, warehouseId.ToString(), "fineex.wms.outorder.add", postUrl, body);
+            var url = SignUtility.GetPostURL(apiKey, apiSecret, "23409", "fineex.wms.outorder.add", postUrl, body);
+            //string url = $"{baseUrl}/app/upstream/out-order";
             var req = new RestRequest(url, Method.Post);
             req.AddBody(body, "application/json");
             var resp = await client.PostAsync<BaseResponse>(req);
@@ -83,8 +116,8 @@ namespace Wms.Client
         {
             var orderList = orders.OfType<OutboundOrderDto>().Select(o => new OutIssueToWmsRequestDetail
             {
-                UpSyncID = o.OutboundId,
-                DownSyncID = o.OutboundId,
+                UpSyncID = o.OutboundId.ToString(),
+                DownSyncID = o.OutboundId.ToString(),
                 MemberID = o.CargoOwner.CargoOwnerId,
                 InterfaceWarehouseID = o.Warehouse.InterfaceWarehouseId,
                 OutCode = o.OrderNumber,
@@ -103,7 +136,7 @@ namespace Wms.Client
                 Memo = o.Remark,
                 DetailList = o.Details.Select(d => new OutDetailRequest
                 {
-                    DetailID = d.DetailNumber,
+                    DetailID = d.DetailNumber.ToString(),
                     CommodityID = d.ProductId,
                     StockType = (int)d.StockType,
                     ProductBatch = d.ProductBatch,
@@ -113,6 +146,7 @@ namespace Wms.Client
                 {
                     CommodityID = d.ProductId,
                     StockType = (int)d.StockType,
+                    ProductBatchID = "",
                     PickAmount = d.HoldingQty,
                     IsSpecifiedBatch = 0
                 }).ToList()

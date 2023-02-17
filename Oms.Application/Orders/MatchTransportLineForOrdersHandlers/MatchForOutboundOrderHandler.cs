@@ -1,6 +1,7 @@
 ﻿using Oms.Application.Contracts;
 using Oms.Application.Contracts.CollaborationServices.ThreePL;
 using Oms.Domain.Orders;
+using Oms.Domain.Processings;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.Uow;
@@ -13,13 +14,15 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
         readonly IThreePLService dataService;
         readonly IOrderRepository repository;
         readonly IUnitOfWorkManager uom;
+        readonly IOrderOperationAppService operationService;
 
 
-        public MatchForOutboundOrderHandler(IThreePLService dataService, IOrderRepository repository, IUnitOfWorkManager uom)
+        public MatchForOutboundOrderHandler(IThreePLService dataService, IOrderRepository repository, IUnitOfWorkManager uom, IOrderOperationAppService operationService)
         {
             this.dataService = dataService;
             this.repository = repository;
             this.uom = uom;
+            this.operationService = operationService;
         }
 
         public async Task HandleEventAsync(MatchTransportLineForOrdersEvent eventData)
@@ -45,6 +48,7 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
 
         async Task AutomaticMatchTransportPlan(string tenantId, Guid orderId)
         {
+            using var unitOfWork = uom.Begin();
             var order = await repository.GetAsync<OutboundOrder>(orderId);
             if (order is null) return;
 
@@ -99,10 +103,11 @@ namespace Oms.Application.Orders.MatchTransportLineForOrdersHandlers
                     }
                 }
 
-                var strategy = new TransportStrategy(transPlan.PlanName, transPlan.Remark, 1, resources);
-                order.SetMatchedResult(strategy);
-
-                await uom.Current.SaveChangesAsync();
+                await operationService.SetMatchedTransportStrategyAsync(order.OutboundId, 1, BusinessTypes.OutboundWithTransport, transPlan.PlanName, transPlan.Remark, resources);
+                await unitOfWork.CompleteAsync();
+                //var strategy = new TransportStrategy(transPlan.PlanName, transPlan.Remark, 1, resources);
+                //order.SetMatchedResult(strategy);
+                //await uom.Current.SaveChangesAsync();
             }
         }
     }

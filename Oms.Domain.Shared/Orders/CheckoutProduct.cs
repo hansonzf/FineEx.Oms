@@ -19,7 +19,7 @@ namespace Oms.Domain.Orders
         protected CheckoutProduct()
         { }
 
-        public CheckoutProduct(Guid orderId, long detailNumber, int productId, string sKU, string productCode, string productName, string productBatch, StockTypes stockType, int requiredQty)
+        public CheckoutProduct(Guid orderId, long detailNumber, int productId, string sKU, string productCode, string productName, string productBatch, StockTypes stockType, int requiredQty, int holdingQty = 0, int factQty = 0)
         {
             OrderId = orderId;
             DetailNumber = detailNumber;
@@ -30,7 +30,8 @@ namespace Oms.Domain.Orders
             ProductBatch = productBatch;
             StockType = stockType;
             RequiredQty = requiredQty;
-            HoldingQty = 0;
+            HoldingQty = holdingQty;
+            FactQty = factQty;
         }
 
         public void BindToOrder(Guid orderId)

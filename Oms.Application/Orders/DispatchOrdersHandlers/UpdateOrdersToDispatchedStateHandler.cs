@@ -19,6 +19,7 @@ namespace Oms.Application.Orders.DispatchOrdersHandlers
 
         public async Task HandleEventAsync(DispatchOrdersEvent eventData)
         {
+            return;
             var orders = await repository.GetOrdersByBusinessType(eventData.OrderIds, eventData.BusinessType);
             foreach (var order in orders)
             {

@@ -1,5 +1,6 @@
 ﻿using Oms.Application.Contracts;
 using Oms.Domain.Orders;
+using Oms.Domain.Processings;
 using Oms.Domain.Shared.Orders.Events;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -9,11 +10,13 @@ namespace Oms.Application.Orders
     public class OrderOperationAppService : ApplicationService, IOrderOperationAppService
     {
         readonly IOrderRepository repository;
+        readonly IProcessingRepository processingRepository;
         readonly ILocalEventBus localEventBus;
 
-        public OrderOperationAppService(IOrderRepository repository, ILocalEventBus localEventBus)
+        public OrderOperationAppService(IOrderRepository repository, IProcessingRepository processingRepository, ILocalEventBus localEventBus)
         {
             this.repository = repository;
+            this.processingRepository = processingRepository;
             this.localEventBus = localEventBus;
         }
         public async Task<BusinessOrderDto?> GetOrderByIdAsync(long orderId, BusinessTypes businessType)
@@ -162,6 +165,7 @@ namespace Oms.Application.Orders
             var order = await GetOrderAsync(orderId, businessType);
             if (order is null)
                 return new ServiceResult { Success = false, Message = "Order not be found" };
+            var processing = await processingRepository.GetByOrderIdAsync(order.Id);
 
             var strategy = new TransportStrategy(
                 strategyName,
@@ -183,6 +187,7 @@ namespace Oms.Application.Orders
             try
             {
                 order.SetMatchedResult(strategy);
+                processing.Complete(ProcessingSteps.MatchTransport);
                 await UnitOfWorkManager.Current.SaveChangesAsync();
                 
                 return new ServiceResult { Success = true };

@@ -61,15 +61,7 @@ namespace Oms.Application.Jobs
             var jobKey = JobHelper.GetJobKey(orderId, businessType);
             if (await scheduler.CheckExists(jobKey))
             {
-                var triggers = await scheduler.GetTriggersOfJob(jobKey);
-                var trigger = triggers.FirstOrDefault();
-                return new ProcessingJobDto
-                {
-                    JobName = jobKey.Name,
-                    GroupName = jobKey.Group,
-                    TriggerName = trigger.Key.Name,
-                    TriggerGroup = trigger.Key.Group
-                };
+                await scheduler.DeleteJob(jobKey);
             }
 
             var jobDetail = CreateJob(jobKey, parameters, processing);
@@ -86,71 +78,6 @@ namespace Oms.Application.Jobs
             };
         }
 
-        //public async Task<ProcessingJobDto?> ScheduleAsync(IEnumerable<BusinessOrderDto> orders, ProcessingSteps processing, double delayMilliseconds = 0)
-        //{
-        //    if (!orders.Any()) return null;
-
-        //    if (orders.Count() == 1 && orders.First().RelationType == RelationTypes.StandAlone)
-        //        return await ScheduleAsync(orders.First(), processing, delayMilliseconds);
-
-        //    var masterOrder = orders.SingleOrDefault(o => o.RelationType == RelationTypes.CombinedMaster);
-        //    if (masterOrder == null)
-        //    { 
-        //        // 传进来的参数中全部都是独立的order
-        //    }
-        //    var jobKey = JobHelper.GetJobKey(masterOrder.Id, processing);
-        //    if (await scheduler.CheckExists(jobKey))
-        //    {
-        //        var triggers = await scheduler.GetTriggersOfJob(jobKey);
-        //        var privateTrigger = SelectPrivateTriggerKey(triggers);
-        //        return new ProcessingJobDto
-        //        {
-        //            JobName = jobKey.Name,
-        //            GroupName = jobKey.Group,
-        //            TriggerName = privateTrigger?.Name
-        //        };
-        //    }
-
-        //    var jobDetail = CreateJob(jobKey, orders, processing);
-        //    var triggerList = CreateDefaultTrigger(masterOrder.Id, processing, delayMilliseconds);
-        //    var defaultTrigger = SelectPrivateTriggerKey(triggerList);
-        //    await scheduler.ScheduleJob(jobDetail, triggerList, true);
-
-        //    return new ProcessingJobDto
-        //    {
-        //        JobName = jobKey.Name,
-        //        GroupName = jobKey.Group,
-        //        TriggerName = defaultTrigger.Name
-        //    };
-        //}
-
-        //private async Task<ProcessingJobDto> ScheduleAsync(BusinessOrderDto order, ProcessingSteps processing, double delayMilliseconds = 0)
-        //{
-        //    var jobKey = JobHelper.GetJobKey(order.Id, processing);
-        //    if (await scheduler.CheckExists(jobKey))
-        //    { 
-        //        var triggers = await scheduler.GetTriggersOfJob(jobKey);
-        //        var privateTrigger = SelectPrivateTriggerKey(triggers);
-        //        return new ProcessingJobDto
-        //        { 
-        //            JobName = jobKey.Name,
-        //            GroupName = jobKey.Group,
-        //            TriggerName = privateTrigger?.Name
-        //        };
-        //    }
-
-        //    var jobDetail = CreateJob(jobKey, new BusinessOrderDto[1] { order }, processing);
-        //    var triggerList = CreateDefaultTrigger(order.Id, processing, delayMilliseconds);
-        //    var defaultTrigger = SelectPrivateTriggerKey(triggerList);
-        //    await scheduler.ScheduleJob(jobDetail, triggerList, true);
-
-        //    return new ProcessingJobDto 
-        //    {
-        //        JobName = jobKey.Name,
-        //        GroupName = jobKey.Group,
-        //        TriggerName = defaultTrigger.Name
-        //    };
-        //}
 
         private IJobDetail CreateJob(JobKey jobKey, Dictionary<string, string> jobParameters, ProcessingSteps processing)
         {
@@ -196,20 +123,5 @@ namespace Oms.Application.Jobs
 
             return new ReadOnlyCollection<ITrigger>(new ITrigger[1] { trigger });
         }
-
-        //private JobDataMap GrabJobDataMap(IEnumerable<BusinessOrderDto> orders, ProcessingSteps processing)
-        //{
-        //    JobDataMap map = new JobDataMap();
-        //    var jobDataMapper = jobDataMapperFactory.CreateJobDataMapper(processing);
-        //    var dataMap = jobDataMapper.GrabJobData(orders);
-        //    foreach (var item in dataMap)
-        //    {
-        //        map.Add(item.Key, item.Value);
-        //    }
-
-        //    return map;
-        //}
-
-
     }
 }

@@ -168,15 +168,16 @@ namespace Oms.Domain.Orders
 
         public virtual void Dispatching(bool automaticDispatch = false)
         {
-            if (IsNeedToMatchTransport && OrderState != OrderStatus.TransportLineMatched)
+            if ((IsNeedToCheckInventory && OrderState != OrderStatus.StockChecked) && (IsNeedToCheckInventory && OrderState != OrderStatus.TransportLineMatched))
                 throw new BusinessException(message: $"Order state error which OrderNumber is {OrderNumber}");
-            if (IsNeedToCheckInventory && OrderState != OrderStatus.StockChecked)
+            if (IsNeedToMatchTransport && OrderState != OrderStatus.TransportLineMatched)
                 throw new BusinessException(message: $"Order state error which OrderNumber is {OrderNumber}");
 
             if (automaticDispatch)
                 AddLocalEvent(new DispatchOrdersEvent
                 {
                     OrderId = Id,
+                    TenantId = TenantId,
                     BusinessType = BusinessType
                 });
         }

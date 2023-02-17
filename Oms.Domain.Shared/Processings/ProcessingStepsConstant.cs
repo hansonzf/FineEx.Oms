@@ -3,8 +3,7 @@
     public class ProcessingStepsConstant
     {
         /// <summary>
-        /// 系统中所支持的完全处理步骤列表
-        /// 这个列表中的项和 ProcessingSteps 枚举的位相对应
+        /// There defined all the steps which supported in system
         /// </summary>
         public static List<ProcessingSteps> FullyProcessingSteps =>
             new List<ProcessingSteps>
@@ -16,19 +15,19 @@
             };
 
         /// <summary>
-        /// 仓配一体出库单的处理项
+        /// outbound warehouse and transport business contains these processing steps
         /// </summary>
         public static ProcessingSteps OutboundWithTransportSteps => 
             ProcessingSteps.B2bCheckoutInventory | ProcessingSteps.MatchTransport | ProcessingSteps.Dispatching;
 
         /// <summary>
-        /// 仓配一体入库单的处理项
+        /// inbound warehouse and transport business contains these processing steps
         /// </summary>
         public static ProcessingSteps InboundWithTransportSteps =>
             ProcessingSteps.MatchTransport | ProcessingSteps.Dispatching;
 
         /// <summary>
-        /// 运输订单的处理项
+        /// transport business contains these processing steps
         /// </summary>
         public static ProcessingSteps TransportSteps =>
             ProcessingSteps.MatchTransport | ProcessingSteps.Dispatching;

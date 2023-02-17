@@ -7,6 +7,7 @@ using Oms.Domain.Orders;
 using Oms.Domain.Shared;
 using Oms.HttpApi.Controllers;
 using Oms.HttpApi.Models;
+using Volo.Abp;
 
 namespace Oms.HttpApi
 {
@@ -40,6 +41,10 @@ namespace Oms.HttpApi
         public async Task<RspModel> AddOutWarehouseOrder(ReqOutWarehouseOderAdd req)
         {
             var dto = ObjectMapper.Map<ReqOutWarehouseOderAdd, OutboundOrderDto>(req);
+            var warehouseList = await dataService.GetWarehouse(CurrentUser.TenantId, req.CargoowerId);
+            var warehouse = warehouseList.FirstOrDefault(w => w.WarehouseId == req.WarehouseId);
+            if (warehouse is not null)
+                dto.Warehouse = warehouse;
             dto.TenantId = CurrentUser.TenantId;
             var result = await orderService.CreateOutboundOrderAsync(dto);
 

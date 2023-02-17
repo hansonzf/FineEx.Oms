@@ -25,25 +25,41 @@ namespace Oms.Application.Orders.DispatchOrdersHandlers
 
         public async Task HandleEventAsync(DispatchOrdersEvent eventData)
         {
-            var orders = await repository.GetOrdersByBusinessType(eventData.OrderIds, eventData.BusinessType);
-            var ordersDto = new List<BusinessOrderDto>();
+            return;
+            var orders = new List<BusinessOrder>();
+            if (eventData.OrderId.HasValue)
+            {
+                var id = await repository.GetOrderIdByOrderUuidAsync(eventData.OrderId.Value, eventData.BusinessType);
+                if (!id.HasValue) return;
+                var o = await repository.GetOrderByIdAsync(id.Value, eventData.BusinessType);
+                if (o == null) return;
+                orders.Add(o);
+            }
+            else if (eventData.OrderIds.Any())
+            {
+                var o = await repository.GetOrdersByBusinessType(eventData.OrderIds, eventData.BusinessType);
+                if (o.Any())
+                    orders.AddRange(o);
+            }
+
+            var orderDtoList = new List<BusinessOrderDto>();
             var addressList = await dataService.GetAddress(eventData.TenantId);
             switch (eventData.BusinessType)
             {
                 case BusinessTypes.OutboundWithTransport:
                     var outboundOrders = objectMapper.Map<IEnumerable<OutboundOrder>, IEnumerable<OutboundOrderDto>>(orders.OfType<OutboundOrder>());
-                    ordersDto = outboundOrders.OfType<BusinessOrderDto>().ToList();
-                    await tmsService.DispatchOrdersAsync(BusinessTypes.OutboundWithTransport, ordersDto, addressList);
+                    orderDtoList = outboundOrders.OfType<BusinessOrderDto>().ToList();
+                    await tmsService.DispatchOrdersAsync(BusinessTypes.OutboundWithTransport, orderDtoList, addressList);
                     break;
                 case BusinessTypes.InboundWithTransport:
                     var inboundOrders = objectMapper.Map<IEnumerable<InboundOrder>, IEnumerable<InboundOrderDto>>(orders.OfType<InboundOrder>());
-                    ordersDto = inboundOrders.OfType<BusinessOrderDto>().ToList();
-                    await tmsService.DispatchOrdersAsync(BusinessTypes.InboundWithTransport, ordersDto, addressList);
+                    orderDtoList = inboundOrders.OfType<BusinessOrderDto>().ToList();
+                    await tmsService.DispatchOrdersAsync(BusinessTypes.InboundWithTransport, orderDtoList, addressList);
                     break;
                 case BusinessTypes.Transport:
                     var transportOrders = objectMapper.Map<IEnumerable<TransportOrder>, IEnumerable<TransportOrderDto>>(orders.OfType<TransportOrder>());
-                    ordersDto = transportOrders.OfType<BusinessOrderDto>().ToList();
-                    await tmsService.DispatchOrdersAsync(BusinessTypes.Transport, ordersDto, addressList);
+                    orderDtoList = transportOrders.OfType<BusinessOrderDto>().ToList();
+                    await tmsService.DispatchOrdersAsync(BusinessTypes.Transport, orderDtoList, addressList);
                     break;
                 case BusinessTypes.None:
                 default:

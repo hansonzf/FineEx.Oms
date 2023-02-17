@@ -12,14 +12,12 @@
         /// <summary>
         /// 系统交互ID
         /// </summary>
-        public long UpSyncID { get; set; }
-
-        public long OutID { get; set; }
+        public string UpSyncID { get; set; }
 
         /// <summary>
         /// 系统交互ID
         /// </summary>
-        public long DownSyncID { get; set; }
+        public string DownSyncID { get; set; }
 
         /// <summary>
         /// 出库单号
@@ -344,13 +342,9 @@
     public class OutDetailRequest
     {
         /// <summary>
-        /// 出库明细ID
-        /// </summary>
-        public long OutDetailID { get; set; }
-        /// <summary>
         /// 出库单明细ID（下发）
         /// </summary>
-        public long DetailID { get; set; }
+        public string DetailID { get; set; }
         /// <summary>
         /// 商品ID
         /// </summary>
@@ -496,7 +490,7 @@
         /// <summary>
         /// 批次ID
         /// </summary>
-        public long ProductBatchID { get; set; }
+        public string ProductBatchID { get; set; }
 
         /// <summary>
         /// 良次品(1 良 2次 3 废)
